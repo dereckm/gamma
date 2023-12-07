@@ -1,5 +1,7 @@
 using Gamma.Parsing;
 
+namespace Gamma.Parsing.Javascript;
+
 public class TokenStreamException : Exception
 {
     public TokenStreamException(string message) : base(message) {}
@@ -7,7 +9,9 @@ public class TokenStreamException : Exception
 
 public class TokenStream
 {
-    private Token _current = null;
+    public static TokenStream Empty => new(new CharacterStream(""));
+
+    private Token? _current = null;
 
     private CharacterStream _characterStream;
 
@@ -25,6 +29,18 @@ public class TokenStream
         return _current;
     }
 
+    public void Consume(Token expected) 
+    {
+        if (Peek().Is(expected)) 
+        {
+            Next();
+        }
+        else 
+        {
+            throw Throw($"Unexpected token: {Peek()}, Expected={expected}");
+        }
+    }
+
     public Token Next() 
     {
         var current = Peek();
@@ -37,10 +53,10 @@ public class TokenStream
         return Peek() == null;
     }
 
-    private Token ReadNext() 
+    private Token? ReadNext() 
     {
         ReadWhile(IsWhitespace);
-        if (_characterStream.IsEndOfStream()) throw new TokenStreamException("Trying to consume token on end of stream.");
+        if (_characterStream.IsEndOfStream()) return null;
         var character = _characterStream.Peek();
         if (character == '/' && _characterStream.PeekAhead() == '/') {
             SkipLine();
@@ -50,7 +66,7 @@ public class TokenStream
         if (IsDigit(character)) return ReadNumber();
         if (IsIdentifierStart(character)) return ReadIdentifier();
         if (IsPunctuation(character)) return new Token(_characterStream.Next(), TokenType.Punctuation);
-        if (IsOperator(character)) return new Token(_characterStream.Next(), TokenType.Operator);
+        if (IsOperator(character)) return ReadOperator();
         throw _characterStream.Terminate($"Can't handle character: {character}");
     }
 
@@ -68,6 +84,12 @@ public class TokenStream
         });
 
         return new Token(number, TokenType.Number);
+    }
+
+    private Token ReadOperator()
+    {
+        var @operator = ReadWhile(IsOperator);
+        return new Token(@operator, TokenType.Operator);
     }
 
     private Token ReadIdentifier() 
@@ -118,32 +140,6 @@ public class TokenStream
         _characterStream.Next();
     }
 
-    private void SkipPunctuation(char token)
-    {
-        if (_current.Value != token.ToString()) 
-        {
-            throw _characterStream.Terminate($"Unexpected punctuation character - Actual={_current.Value}, Expected={token}");
-        }
-        Next();
-    }
-
-    public Token[] ParseBetween(char start, char stop, char separator) 
-    {
-        var tokens = new List<Token>();
-        var depth = 0;
-        SkipPunctuation(start);
-        while (!IsEndOfStream())
-        {
-            if (depth == 0 && _current.Value == stop.ToString()) break;
-            if (_current.Value == stop.ToString()) depth--;
-            else if (_current.Value == start.ToString()) depth++;
-            else if(_current.Value == separator.ToString()) Next();
-            tokens.Add(Next());
-        }
-        SkipPunctuation(stop);
-        return tokens.ToArray();
-    }
-
     private static bool IsWhitespace(char character) => char.IsWhiteSpace(character);
     private static bool IsDigit(char character) => char.IsDigit(character);
 
@@ -154,12 +150,15 @@ public class TokenStream
     private static bool IsPunctuation(char character) => Punctuation.Contains(character);
     private static bool IsIdentifierStart(char character) => char.IsLetter(character) || character == '_';
 
-    private static bool IsIdentifier(char character) => IsIdentifierStart(character) || IsDigit(character);
+    private static bool IsIdentifier(char character) => IsIdentifierStart(character) || IsDigit(character) || character == '.';
 
     private static readonly HashSet<string> Keywords = new () { "if", "else", "var", "const", "true", "false", "let", "function" };
     private static bool IsKeyword(string identifier) => Keywords.Contains(identifier);
    
-
+    public Exception Throw(string message)
+    {
+        return _characterStream.Terminate(message);
+    }
 
     private string ReadWhile(Func<char, bool> predicate) 
     {

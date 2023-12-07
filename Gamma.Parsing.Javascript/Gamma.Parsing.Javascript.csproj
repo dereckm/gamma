@@ -10,8 +10,4 @@
     <ProjectReference Include="../Gamma.Parsing/Gamma.Parsing.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Syntax\" />
-  </ItemGroup>
-
 </Project>

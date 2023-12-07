@@ -16,6 +16,14 @@ public class Token
 
     public Token(char value, TokenType type) : this(value.ToString(), type) {}
   
+    public bool Is(TokenType type) => Type == type;
+    public bool Is(TokenType type, string value) => Is(type) && Value == value;
+    public bool Is(Token token) => Is(token.Type, token.Value);
+
+    public override string ToString()
+    {
+        return $"{Value} ({Type})";
+    }
 }
 
 public enum TokenType 
