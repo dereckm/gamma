@@ -4,7 +4,7 @@ public class Precendences
 {
     private static Dictionary<string, int> _precendences = new ()
     {
-        { "=", 1 },
+        { "=", 1 }, { "+=", 1 },
         { "||", 2 },
         { "&&", 3 },
         { "<", 7 }, { ">", 7 }, { "<=", 7 }, { ">=", 7 }, { "==", 7 }, { "!=", 7 },

@@ -29,9 +29,9 @@ public class ParserTests
 
         Assert.AreEqual("y", ast.Left.As<IdentifierNode>().Name);
         var right = ast.Right.As<BinaryExpressionNode>();
-        Assert.AreEqual(right.Left.Type, "variable");
-        Assert.AreEqual(right.Operator, "+");
-        Assert.AreEqual(right.Right.Type, "number");
+        Assert.AreEqual("identifier", right.Left.Type);
+        Assert.AreEqual("+", right.Operator);
+        Assert.AreEqual("number", right.Right.Type);
         var variable = right.Left.As<IdentifierNode>();
         Assert.AreEqual("x", variable.Name);
         var literal = right.Right.As<LiteralNode>();
@@ -88,8 +88,46 @@ public class ParserTests
 
     #endregion
 
+    #region Increments
+    [Test]
+    public void Parse_PostIncrement_ReturnsUnaryExpressionNode()
+    {
+        RunTest("x++;", "UnaryExpressionNode");
+    }
+
+    [Test]
+    public void Parse_PreIncrement_ReturnsUnaryExpressionNode()
+    {
+        RunTest("++x;", "UnaryExpressionNode");
+    }
+
+    [Test]
+    public void Parse_PostDecrement_ReturnsUnaryExpressionNode()
+    {
+        RunTest("y--;", "UnaryExpressionNode");
+    }
+
+    [Test]
+    public void Parse_PreDecrement_ReturnsUnaryExpressionNode()
+    {
+        RunTest("--y;", "UnaryExpressionNode");
+    }
+
+    [Test]
+    public void Parse_CompoundAssignment_ReturnsBinaryExpressionNode()
+    {
+        RunTest("z += 10;", "BinaryExpressionNode");
+    }
+
+    [Test]
+    public void Parse_CompoundAssignmentWithVariable_ReturnsBinaryExpressionNode()
+    {
+        RunTest("a += b;", "BinaryExpressionNode");
+    }
+    #endregion
+
     #region IfElseStatements
-        [Test]
+    [Test]
     public void Parse_IfStatementWithLiteralCondition_ReturnsIfStatementNode()
     {
         RunTest("if (true) { x = 42; }", "IfStatementNode");
@@ -123,6 +161,44 @@ public class ParserTests
     public void Parse_IfElseIfElseStatement_ReturnsIfStatementNode()
     {
         RunTest("if (x > 10) { y = 5; } else if (x < 0) { y = -5; } else { y = 0; }", "IfStatementNode");
+    }
+    #endregion
+
+    #region ForLoops
+    [Test]
+    public void Parse_ForLoopWithLiteralCondition_ReturnsForStatementNode()
+    {
+        RunTest("for (let i = 0; i < 5; i++) { console.log(i); }", "ForStatementNode");
+    }
+
+    [Test]
+    public void Parse_ForLoopWithVariableCondition_ReturnsForStatementNode()
+    {
+        RunTest("for (let i = 0; i < x; i++) { console.log(i); }", "ForStatementNode");
+    }
+
+    [Test]
+    public void Parse_ForLoopWithMultipleStatements_ReturnsForStatementNode()
+    {
+        RunTest("for (let i = 0; i < 3; i++) { console.log(i); x = x + i; }", "ForStatementNode");
+    }
+
+    [Test]
+    public void Parse_ForLoopWithoutInitializer_ReturnsProgramtNode()
+    {
+        RunTest("let i = 0; for (; i < 3; i++) { console.log(i); }", "ProgramNode");
+    }
+
+    [Test]
+    public void Parse_ForLoopWithoutCondition_ReturnsProgramNode()
+    {
+        RunTest("let i = 0; for (; ; i++) { console.log(i); }", "ProgramNode");
+    }
+
+    [Test]
+    public void Parse_ForLoopWithoutIncrementor_ReturnsProgramNode()
+    {
+        RunTest("let i = 0; for (i; i < 3;) { console.log(i); }", "ProgramNode");
     }
     #endregion
 

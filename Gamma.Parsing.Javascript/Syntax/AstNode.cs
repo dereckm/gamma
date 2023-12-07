@@ -23,7 +23,11 @@ public class DeadNode : AstNode
 // Program-related nodes
 public class ProgramNode : AstNode
 {
-    public ProgramNode(string type) : base(type) {}
+    public ProgramNode(string type, IEnumerable<AstNode> statements) : base(type) 
+    {
+        Body.AddRange(statements);
+    }
+
     public List<AstNode> Body { get; } = new List<AstNode>();
 }
 
@@ -107,6 +111,22 @@ public class IfStatementNode : AstNode
     public AstNode Alternate { get; set; } = Dead;
 }
 
+public class FunctionCallNode : AstNode
+{
+    public FunctionCallNode(
+        string type,
+        IdentifierNode identifierNode,
+        IEnumerable<AstNode> arguments) : base(type)
+    {
+        Identifier = identifierNode;
+        Arguments.AddRange(arguments);
+    }
+
+    public IdentifierNode Identifier { get; }
+
+    public List<AstNode> Arguments { get; } = new();
+}
+
 // // Function-related nodes
 // public class FunctionExpressionNode : AstNode
 // {
@@ -121,13 +141,42 @@ public class IfStatementNode : AstNode
 // }
 
 // Loop and Iteration nodes
-// public class ForStatementNode : AstNode
-// {
-//     public AstNode Init { get; set; }
-//     public AstNode Test { get; set; }
-//     public AstNode Update { get; set; }
-//     public AstNode Body { get; set; }
-// }
+public class ForStatementNode : AstNode
+{
+    public ForStatementNode(
+        string type,
+        AstNode init,
+        AstNode test,
+        AstNode update,
+        AstNode body) : base(type)
+    {
+        Init = init;
+        Test = test;
+        Update = update;
+        Body = body;
+    }
+
+    public AstNode Init { get; }
+    public AstNode Test { get;}
+    public AstNode Update { get; }
+    public AstNode Body { get; }
+}
+
+public class UnaryExpressionNode : AstNode
+{
+    public UnaryExpressionNode(
+        string type, 
+        AstNode operand,
+        string @operator) : base(type)
+    {
+        Operand = operand;
+        Operator = @operator;
+    }
+
+    public AstNode Operand { get; }
+    public string Operator { get; }
+    public bool IsSuffix { get; } = false;
+}
 
 // // Exception Handling nodes
 // public class TryStatementNode : AstNode

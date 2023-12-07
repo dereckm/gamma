@@ -13,42 +13,20 @@ public class Parser
     public AstNode Parse(string code)
     {
         _tokens = new TokenStream(new CharacterStream(code));
-        return ParseExpression();
-        throw new NotImplementedException();
-    }
-
-    public AstNode ParseBool()
-    {
-        var token = _tokens.Next();
-        return new LiteralNode("bool", bool.Parse(token.Value));
-    }
-
-    public AstNode ParseNumber()
-    {
-        var numberToken = _tokens.Next();
-        return new LiteralNode ("number", int.Parse(numberToken.Value));
-    }
-
-    public AstNode ParseVariable()
-    {
-        var identifierToken = _tokens.Next();
-        return new IdentifierNode("variable", identifierToken.Value);
-    }
-
-    public AstNode ParseStatementBlock()
-    {
-        _tokens.Consume(new Token("{", TokenType.Punctuation));
         var statements = new List<AstNode>();
-        while (!_tokens.Peek().Is(TokenType.Punctuation, "}")) 
+        while (!_tokens.IsEndOfStream()) 
         {
-            statements.Add(ParseExpression());
+            var expression = ParseExpression();
+            if (expression is not DeadNode) 
+                statements.Add(expression);
         }
-        _tokens.Consume(new Token("}", TokenType.Punctuation));
-        return statements.Count == 1 
-            ? statements[0] 
-            : new BlockStatementNode("block", statements);
-    }
+        if (statements.Count == 1)
+        {
+            return statements[0];
+        }
 
+        return new ProgramNode("program", statements);
+    }
 
     public AstNode ParseExpression() 
     {
@@ -61,6 +39,8 @@ public class Parser
                 return ParseIfStatement();
             if (token.Value == "true" || token.Value == "false")
                 return MaybeBinary(ParseBool(), 0);
+            if (token.Value == "for")
+                return ParseForLoop();
         }
         if (token.Type == TokenType.Number)
         {
@@ -75,7 +55,27 @@ public class Parser
             _tokens.Consume(new Token("(", TokenType.Punctuation));
             var expression = ParseExpression();
             _tokens.Consume(new Token(")", TokenType.Punctuation));
-            return expression;
+            return MaybeBinary(expression, 0);
+        }
+        if (token.Is(TokenType.Operator) 
+            && token.Value is "++" or "--")
+        {
+            var operatorToken = _tokens.Next();
+            var type = operatorToken.Value == "++" ? "inc" : "dec";
+            var operand = ParseExpression();
+            return new UnaryExpressionNode(type, operand, operatorToken.Value);
+        }
+        if (token.Is(TokenType.Operator) && token.Value is "-")
+        {
+            var operatorToken = _tokens.Next();
+            var operand = ParseExpression();
+            return new UnaryExpressionNode("minus", operand, operatorToken.Value);
+        }
+        if (token.Is(TokenType.Operator) && token.Value is "!")
+        {
+            var operatorToken = _tokens.Next();
+            var operand = ParseExpression();
+            return new UnaryExpressionNode("negate", operand, operatorToken.Value);
         }
         if (token.Is(TokenType.Punctuation, "{"))
         {
@@ -90,24 +90,119 @@ public class Parser
         throw new NotImplementedException();
     }
 
+    public AstNode MaybeCall() 
+    {
+        var identifier = ParseVariable();
+        var next = _tokens.Peek();
+        var arguments = new List<AstNode>();
+        if (next.Is(TokenType.Punctuation, "("))
+        {
+            _tokens.Consume(next);
+            while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
+            {
+                var expression = ParseExpression();
+                if (expression is not DeadNode)
+                    arguments.Add(expression);
+            }
+            _tokens.Consume(new Token(")", TokenType.Punctuation));
+            return new FunctionCallNode(
+                "function_call",
+                identifier,
+                arguments
+                );
+        }
+
+        return MaybeBinary(identifier, 0);
+    }
+
+    public AstNode ParseForLoop()
+    {
+        var init = AstNode.Dead;
+        var test = AstNode.Dead;
+        var update = AstNode.Dead;
+
+        _tokens.Consume(new Token("for", TokenType.Keyword));
+        _tokens.Consume(new Token("(", TokenType.Punctuation));
+
+        var next = _tokens.Peek();
+        if (!next.Is(TokenType.Punctuation, ";")) {
+            init = ParseExpression();
+        }
+        _tokens.Consume(new Token(";", TokenType.Punctuation));
+
+        next = _tokens.Peek();
+        if (!next.Is(TokenType.Punctuation, ";")) {
+            test = ParseExpression();
+        }
+        _tokens.Consume(new Token(";", TokenType.Punctuation));
+
+        next = _tokens.Peek();
+        if (!next.Is(TokenType.Punctuation, ")")) {
+            update = ParseExpression();
+        }
+
+        _tokens.Consume(new Token(")", TokenType.Punctuation));
+        var body = ParseExpression();
+
+
+        return new ForStatementNode(
+            "for",
+            init,
+            test,
+            update,
+            body
+            );
+    }
+
+    public AstNode ParseBool()
+    {
+        var token = _tokens.Next();
+        return new LiteralNode("bool", bool.Parse(token.Value));
+    }
+
+    public AstNode ParseNumber()
+    {
+        var numberToken = _tokens.Next();
+        return new LiteralNode ("number", int.Parse(numberToken.Value));
+    }
+
+    public IdentifierNode ParseVariable()
+    {
+        var identifierToken = _tokens.Next();
+        return new IdentifierNode("identifier", identifierToken.Value);
+    }
+
+    public AstNode ParseStatementBlock()
+    {
+        _tokens.Consume(new Token("{", TokenType.Punctuation));
+        var statements = new List<AstNode>();
+        while (!_tokens.Peek().Is(TokenType.Punctuation, "}")) 
+        {
+            var expression = ParseExpression();
+            if (expression is not DeadNode)
+                statements.Add(expression);
+        }
+        _tokens.Consume(new Token("}", TokenType.Punctuation));
+        return statements.Count == 1 
+            ? statements[0] 
+            : new BlockStatementNode("block", statements);
+    }
+
     public AstNode ParseIfStatement()
     {
         _tokens.Consume(new Token("if", TokenType.Keyword));
         var test = ParseExpression();
 
-        var next = _tokens.Peek();
-        AstNode consequent = AstNode.Dead;
         AstNode alternate = AstNode.Dead;
-        if (next.Is(TokenType.Punctuation, "{"))
-        {
-            consequent = ParseExpression();
-            next = _tokens.Peek();
-            if (null != null && next.Is(TokenType.Keyword, "else"))
-            {
-                alternate = ParseExpression();
-            }
-        }
 
+        var consequent = ParseExpression();
+        var next = _tokens.Peek();
+        if (next != null && next.Is(TokenType.Keyword, "else"))
+        {
+            _tokens.Consume(next);
+            alternate = ParseExpression();
+        }
+        
         return new IfStatementNode("if", test, consequent)
         {
             Alternate = alternate
@@ -117,13 +212,24 @@ public class Parser
     public AstNode MaybeBinary(AstNode left, int myPrecendence) 
     {
         var token = _tokens.Peek();
+        if (token.Is(TokenType.Operator) &&
+            token.Value is "++" or "--")
+        {
+            var operatorToken = _tokens.Next();
+            var type = operatorToken.Value == "++" ? "inc" : "dec";
+            return new UnaryExpressionNode(
+                type,
+                left,
+                operatorToken.Value
+            );
+        }
+
         if (token.Is(TokenType.Operator)) 
         {
             var operatorToken = _tokens.Next();
             var otherPrecendence = _precendences[token.Value];
             if (otherPrecendence > myPrecendence) 
             {
-                
                 return MaybeBinary(
                     new BinaryExpressionNode(
                         "binary",

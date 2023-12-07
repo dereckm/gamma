@@ -152,7 +152,7 @@ public class TokenStream
 
     private static bool IsIdentifier(char character) => IsIdentifierStart(character) || IsDigit(character) || character == '.';
 
-    private static readonly HashSet<string> Keywords = new () { "if", "else", "var", "const", "true", "false", "let", "function" };
+    private static readonly HashSet<string> Keywords = new () { "if", "else", "var", "const", "true", "false", "let", "function", "for" };
     private static bool IsKeyword(string identifier) => Keywords.Contains(identifier);
    
     public Exception Throw(string message)
