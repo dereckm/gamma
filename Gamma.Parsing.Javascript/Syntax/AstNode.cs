@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Gamma.Parsing.Javascript.Syntax;
 
 // Base class for all AST nodes
@@ -91,7 +93,7 @@ public class BinaryExpressionNode : AstNode
         Operator = @operator;
         Right = right;
     }
-
+    
     public string Operator { get; }
     public AstNode Left { get; }
     public AstNode Right { get; }

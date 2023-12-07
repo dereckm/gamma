@@ -75,7 +75,7 @@ public class Parser
         {
             var operatorToken = _tokens.Next();
             var operand = ParseExpression();
-            return new UnaryExpressionNode("negate", operand, operatorToken.Value);
+            return new UnaryExpressionNode("not", operand, operatorToken.Value);
         }
         if (token.Is(TokenType.Punctuation, "{"))
         {
