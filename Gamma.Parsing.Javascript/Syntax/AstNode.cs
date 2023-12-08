@@ -56,13 +56,19 @@ public class VariableDeclarationNode : AstNode
 
 public class FunctionDeclarationNode : AstNode
 {
-    public FunctionDeclarationNode(string type, string identifier, AstNode body) : base(type) 
+    public FunctionDeclarationNode(
+        string type,
+        IdentifierNode identifier,
+        IEnumerable<AstNode> parameters,
+        AstNode body
+        ) : base(type) 
     {
         Identifier = identifier;
+        Parameters.AddRange(parameters);
         Body = body;
     }
-    public string Identifier { get; }
-    public List<AstNode> Params { get; } = new List<AstNode>();
+    public IdentifierNode Identifier { get; }
+    public List<AstNode> Parameters { get; } = new List<AstNode>();
     public AstNode Body { get; }
 }
 

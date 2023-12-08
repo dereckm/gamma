@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gamma.Parsing.Javascript.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gamma.Console", "Gamma.Console\Gamma.Console.csproj", "{C2156F9A-6CFA-4668-B18B-A39FD14D4769}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gamma.Interpreting.Javascript", "Gamma.Interpreting.Javascript\Gamma.Interpreting.Javascript.csproj", "{46BA0A8D-281D-465D-A72D-FD18DF3641C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C2156F9A-6CFA-4668-B18B-A39FD14D4769}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2156F9A-6CFA-4668-B18B-A39FD14D4769}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2156F9A-6CFA-4668-B18B-A39FD14D4769}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46BA0A8D-281D-465D-A72D-FD18DF3641C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46BA0A8D-281D-465D-A72D-FD18DF3641C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46BA0A8D-281D-465D-A72D-FD18DF3641C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46BA0A8D-281D-465D-A72D-FD18DF3641C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

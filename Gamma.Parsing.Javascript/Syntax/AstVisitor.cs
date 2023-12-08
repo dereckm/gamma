@@ -72,7 +72,7 @@ namespace Gamma.Parsing.Javascript.Syntax;
 
         public virtual void Visit(FunctionDeclarationNode node)
         {
-            foreach (var param in node.Params)
+            foreach (var param in node.Parameters)
             {
                 Visit(param);
             }

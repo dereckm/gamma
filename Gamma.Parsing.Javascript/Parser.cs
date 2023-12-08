@@ -34,13 +34,15 @@ public class Parser
         if (token.Type == TokenType.Keyword)
         {
             if (token.Value == "let" || token.Value == "const" || token.Value == "var")
-                return ParseAssignmentExpression();
+                return ParseVariableDeclaration();
             if (token.Value == "if")
                 return ParseIfStatement();
             if (token.Value == "true" || token.Value == "false")
                 return MaybeBinary(ParseBool(), 0);
             if (token.Value == "for")
                 return ParseForLoop();
+            if (token.Value == "function")
+                return ParseFunctionDeclaration();
         }
         if (token.Type == TokenType.Number)
         {
@@ -48,7 +50,7 @@ public class Parser
         }
         if (token.Type == TokenType.Identifier) 
         {
-            return MaybeBinary(ParseVariable(), 0);
+            return MaybeBinary(MaybeAssignment(ParseVariable()), 0);
         }
         if (token.Is(TokenType.Punctuation, "("))
         {
@@ -88,6 +90,29 @@ public class Parser
         }
 
         throw new NotImplementedException();
+    }
+
+    public AstNode ParseFunctionDeclaration()
+    {
+        _tokens.Consume(new Token("function", TokenType.Keyword));
+        var identifier = ParseIdentifier();
+        _tokens.Consume(new Token("(", TokenType.Punctuation));
+        var parameters = new List<AstNode>();
+        while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
+        {
+            var expression = ParseExpression();
+            if (_tokens.Peek().Is(TokenType.Punctuation, ","))
+                _tokens.Consume(_tokens.Peek());
+            parameters.Add(expression);
+        }
+        _tokens.Consume(new Token(")", TokenType.Punctuation));
+        var body = ParseExpression();
+
+        return new FunctionDeclarationNode(
+            "function_declaration",
+            identifier,
+            parameters,
+            body);
     }
 
     public AstNode MaybeCall() 
@@ -243,8 +268,27 @@ public class Parser
         return left;
     }
 
+    public AstNode MaybeAssignment(AstNode left)
+    {
+        var token = _tokens.Peek();
+        if (token.Is(TokenType.Operator, "=")) 
+        {
+            _tokens.Consume(token);
+            var right = ParseExpression();
 
-    public AstNode ParseAssignmentExpression()
+            return new BinaryExpressionNode(
+                "assignment",
+                left,
+                "=",
+                right
+            );
+        }
+
+        return left;
+    }
+
+
+    public AstNode ParseVariableDeclaration()
     {
         var keyword = _tokens.Next();
         var type = keyword.Value;
@@ -256,7 +300,7 @@ public class Parser
             var right = ParseExpression();
 
             return new BinaryExpressionNode(
-                $"assignment_{type}",
+                $"var_declaration_{type}",
                 left,
                 "=",
                 right
@@ -266,10 +310,10 @@ public class Parser
         return left;
     }
 
-    public AstNode ParseIdentifier() 
+    public IdentifierNode ParseIdentifier() 
     {
         var identifierToken = _tokens.Next();
         if (identifierToken.Type != TokenType.Identifier) throw _tokens.Throw("Expected identifier token.");
-        return new IdentifierNode("variable_declaration", identifierToken.Value);
+        return new IdentifierNode("identifier", identifierToken.Value);
     }
 }

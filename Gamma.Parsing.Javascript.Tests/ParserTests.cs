@@ -11,8 +11,8 @@ public class ParserTests
     public void Parse_VariableAssignment_ReturnsBinaryExpressionNode()
     {
         var ast = RunTest<BinaryExpressionNode>("let x = 42;", "BinaryExpressionNode");
-        Assert.AreEqual("assignment_let", ast.Type);
-        Assert.AreEqual("variable_declaration", ast.Left.Type);
+        Assert.AreEqual("var_declaration_let", ast.Type);
+        Assert.AreEqual("identifier", ast.Left.Type);
         Assert.AreEqual("number", ast.Right.Type);
 
         Assert.AreEqual("x", ast.Left.As<IdentifierNode>().Name);
@@ -23,8 +23,8 @@ public class ParserTests
     public void Parse_ExpressionWithVariable_ReturnsBinaryExpressionNode()
     {
         var ast = RunTest<BinaryExpressionNode>("let y = x + 10;", "BinaryExpressionNode");
-        Assert.AreEqual("assignment_let", ast.Type);
-        Assert.AreEqual("variable_declaration", ast.Left.Type);
+        Assert.AreEqual("var_declaration_let", ast.Type);
+        Assert.AreEqual("identifier", ast.Left.Type);
         Assert.AreEqual("binary", ast.Right.Type);
 
         Assert.AreEqual("y", ast.Left.As<IdentifierNode>().Name);
@@ -199,6 +199,34 @@ public class ParserTests
     public void Parse_ForLoopWithoutIncrementor_ReturnsProgramNode()
     {
         RunTest("let i = 0; for (i; i < 3;) { console.log(i); }", "ProgramNode");
+    }
+    #endregion
+
+    #region FunctionDeclarations
+    [Test]
+    public void TestSimpleFunctionDeclaration()
+    {
+        var code = "function simpleFunction() { var x; }";
+        var ast = RunTest(code, "FunctionDeclarationNode");
+
+        // Additional assertions based on your AST structure
+        Assert.AreEqual("simpleFunction", ((FunctionDeclarationNode)ast).Identifier.Name);
+        Assert.AreEqual(0, ((FunctionDeclarationNode)ast).Parameters.Count);
+        Assert.AreEqual("identifier", ast.As<FunctionDeclarationNode>().Body.Type);
+    }
+
+    [Test]
+    public void TestFunctionDeclarationWithParameters()
+    {
+        var code = "function functionWithParams(param1, param2) { var x; }";
+        var ast = RunTest(code, "FunctionDeclarationNode");
+
+        // Additional assertions based on your AST structure
+        Assert.AreEqual("functionWithParams", ((FunctionDeclarationNode)ast).Identifier.Name);
+        Assert.AreEqual(2, ((FunctionDeclarationNode)ast).Parameters.Count);
+        Assert.AreEqual("param1", ((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[0]).Name);
+        Assert.AreEqual("param2", ((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[1]).Name);
+        Assert.AreEqual("identifier", ast.As<FunctionDeclarationNode>().Body.Type);
     }
     #endregion
 

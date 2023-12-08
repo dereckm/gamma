@@ -26,7 +26,9 @@ public class TokenStream
         {
             _current = ReadNext();
         }
+#pragma warning disable CS8603 // Possible null reference return. Expected.. Should check IsEndOfStream
         return _current;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 
     public void Consume(Token expected) 
@@ -152,7 +154,9 @@ public class TokenStream
 
     private static bool IsIdentifier(char character) => IsIdentifierStart(character) || IsDigit(character) || character == '.';
 
-    private static readonly HashSet<string> Keywords = new () { "if", "else", "var", "const", "true", "false", "let", "function", "for" };
+    private static readonly HashSet<string> Keywords = new () { 
+        "if", "else", "var", "const", "true", "false", 
+        "let", "function", "for", "function" };
     private static bool IsKeyword(string identifier) => Keywords.Contains(identifier);
    
     public Exception Throw(string message)
