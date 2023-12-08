@@ -11,31 +11,30 @@ public class ParserTests
     public void Parse_VariableAssignment_ReturnsBinaryExpressionNode()
     {
         var ast = RunTest<BinaryExpressionNode>("let x = 42;", "BinaryExpressionNode");
-        Assert.AreEqual("var_declaration_let", ast.Type);
-        Assert.AreEqual("identifier", ast.Left.Type);
-        Assert.AreEqual("number", ast.Right.Type);
-
-        Assert.AreEqual("x", ast.Left.As<IdentifierNode>().Name);
-        Assert.AreEqual(42, ast.Right.As<LiteralNode>().Value);
+        Assert.That("var_declaration_let", Is.EqualTo(ast.Type));
+        Assert.That("identifier", Is.EqualTo(ast.Left.Type));
+        Assert.That("number", Is.EqualTo(ast.Right.Type));
+        Assert.That("x", Is.EqualTo(ast.Left.As<IdentifierNode>().Name));
+        Assert.That(42, Is.EqualTo(ast.Right.As<LiteralNode>().Value));
     }
 
     [Test]
     public void Parse_ExpressionWithVariable_ReturnsBinaryExpressionNode()
     {
         var ast = RunTest<BinaryExpressionNode>("let y = x + 10;", "BinaryExpressionNode");
-        Assert.AreEqual("var_declaration_let", ast.Type);
-        Assert.AreEqual("identifier", ast.Left.Type);
-        Assert.AreEqual("binary", ast.Right.Type);
+        Assert.That("var_declaration_let", Is.EqualTo(ast.Type));
+        Assert.That("identifier", Is.EqualTo(ast.Left.Type));
+        Assert.That("binary", Is.EqualTo(ast.Right.Type));
 
-        Assert.AreEqual("y", ast.Left.As<IdentifierNode>().Name);
+        Assert.That("y", Is.EqualTo(ast.Left.As<IdentifierNode>().Name));
         var right = ast.Right.As<BinaryExpressionNode>();
-        Assert.AreEqual("identifier", right.Left.Type);
-        Assert.AreEqual("+", right.Operator);
-        Assert.AreEqual("number", right.Right.Type);
+        Assert.That("identifier", Is.EqualTo(right.Left.Type));
+        Assert.That("+", Is.EqualTo(right.Operator));
+        Assert.That("number", Is.EqualTo(right.Right.Type));
         var variable = right.Left.As<IdentifierNode>();
-        Assert.AreEqual("x", variable.Name);
+        Assert.That("x", Is.EqualTo(variable.Name));
         var literal = right.Right.As<LiteralNode>();
-        Assert.AreEqual(10, literal.Value);
+        Assert.That(10, Is.EqualTo(literal.Value));
     }
 
     [Test]
@@ -210,9 +209,9 @@ public class ParserTests
         var ast = RunTest(code, "FunctionDeclarationNode");
 
         // Additional assertions based on your AST structure
-        Assert.AreEqual("simpleFunction", ((FunctionDeclarationNode)ast).Identifier.Name);
-        Assert.AreEqual(0, ((FunctionDeclarationNode)ast).Parameters.Count);
-        Assert.AreEqual("identifier", ast.As<FunctionDeclarationNode>().Body.Type);
+        Assert.That("simpleFunction", Is.EqualTo(((FunctionDeclarationNode)ast).Identifier.Name));
+        Assert.That(0, Is.EqualTo(((FunctionDeclarationNode)ast).Parameters.Count));
+        Assert.That("identifier", Is.EqualTo(ast.As<FunctionDeclarationNode>().Body.Type));
     }
 
     [Test]
@@ -222,11 +221,11 @@ public class ParserTests
         var ast = RunTest(code, "FunctionDeclarationNode");
 
         // Additional assertions based on your AST structure
-        Assert.AreEqual("functionWithParams", ((FunctionDeclarationNode)ast).Identifier.Name);
-        Assert.AreEqual(2, ((FunctionDeclarationNode)ast).Parameters.Count);
-        Assert.AreEqual("param1", ((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[0]).Name);
-        Assert.AreEqual("param2", ((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[1]).Name);
-        Assert.AreEqual("identifier", ast.As<FunctionDeclarationNode>().Body.Type);
+        Assert.That("functionWithParams", Is.EqualTo(((FunctionDeclarationNode)ast).Identifier.Name));
+        Assert.That(2, Is.EqualTo(((FunctionDeclarationNode)ast).Parameters.Count));
+        Assert.That("param1", Is.EqualTo(((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[0]).Name));
+        Assert.That("param2", Is.EqualTo(((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[1]).Name));
+        Assert.That("identifier", Is.EqualTo(ast.As<FunctionDeclarationNode>().Body.Type));
     }
     #endregion
 
@@ -234,7 +233,7 @@ public class ParserTests
     {
         var parser = new Parser();
         var ast = parser.Parse(code);
-        Assert.AreEqual(expectedNodeType, ast.GetType().Name);
+        Assert.That(expectedNodeType, Is.EqualTo(ast.GetType().Name));
         return ast;
     }
 

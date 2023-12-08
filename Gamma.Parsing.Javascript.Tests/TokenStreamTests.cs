@@ -17,19 +17,19 @@ public class TokenStreamTests
     {
         var stream = new TokenStream(new CharacterStream("let x = 25;"));
         var t1 = stream.Next();
-        Assert.AreEqual( "let", t1.Value);
-        Assert.AreEqual(TokenType.Keyword, t1.Type);
+        Assert.That("let", Is.EqualTo(t1.Value));
+        Assert.That(TokenType.Keyword, Is.EqualTo(t1.Type));
 
         var t2 = stream.Next();
-        Assert.AreEqual("x", t2.Value);
-        Assert.AreEqual(TokenType.Identifier, t2.Type);
+        Assert.That("x", Is.EqualTo(t2.Value));
+        Assert.That(TokenType.Identifier, Is.EqualTo(t2.Type));
 
         var t3 = stream.Next();
-        Assert.AreEqual( "=", t3.Value);
-        Assert.AreEqual(TokenType.Operator, t3.Type);
+        Assert.That( "=", Is.EqualTo(t3.Value));
+        Assert.That(TokenType.Operator, Is.EqualTo(t3.Type));
 
         var t4 = stream.Next();
-        Assert.AreEqual("25", t4.Value);
-        Assert.AreEqual(TokenType.Number, t4.Type);
+        Assert.That("25", Is.EqualTo(t4.Value));
+        Assert.That(TokenType.Number, Is.EqualTo(t4.Type));
     }
 }

@@ -1,3 +1,5 @@
+using System.Numerics;
+using System.Runtime.InteropServices;
 using Gamma.Parsing.Javascript.Syntax;
 
 namespace Gamma.Interpreting.Javascript;
@@ -62,7 +64,7 @@ internal class Evaluator : AstVisitor
             Visit(node.Right);
             var result = _stack.Peek();
             _env!.Set(node.Left.As<IdentifierNode>().Name, result);
-            return;
+            return; 
         }
 
         Visit(node.Left);
@@ -73,6 +75,7 @@ internal class Evaluator : AstVisitor
         
         if (node.Operator == "+=") 
         {
+
             var incrementedValue = ApplyOperator("+", left, right);
             var identifier = node.Left.As<IdentifierNode>();
             _env!.Set(identifier.Name, incrementedValue);
@@ -116,44 +119,32 @@ internal class Evaluator : AstVisitor
 
     private object ApplyOperator(string op, object a, object b)
     {
-
         if (a is int int1 && b is int int2)
+            return ApplyOperator(op, int1, int2);
+        if (a is int int3 && b is double double1)
+            return ApplyOperator(op, int3, double1);
+        if (a is double double2 && b is int int4)
+            return ApplyOperator(op, double2, int4);
+        if (a is double double3 && b is double double4)
+            return ApplyOperator(op, double3, double4);
+        throw new NotImplementedException("Type combinaison not supported: ({a.GetType().Name}, {b.GetType().Name})");
+    }
+
+    private object ApplyOperator<T>(string op, T a, T b)
+        where T: INumber<T>
+    {
+        return op switch
         {
-            switch (op)
-            {
-                case "+" : return int1 + int2;
-                case "-" : return int1 - int2;
-                case "*" : return int1 * int2;
-                case "/" : return int1 / int2;
-                case "%" : return int1 % int2;
-                case "<" : return int1 < int2;
-                case "<=" : return int1 <= int2;
-                case ">" : return int1 > int2;
-                case ">=" : return int1 >= int2;
-            }
-        }
-        else if (a is double d1 && b is int int3)
-        {
-            switch (op)
-            {
-                case "+" : return d1 + int3;
-                case "-" : return d1 - int3;
-                case "*" : return d1 * int3;
-                case "/" : return d1 / int3;
-                case "%" : return d1 % int3;
-            }
-        }
-        else if (a is int int4 && b is double d2)
-        {
-            switch (op)
-            {
-                case "+" : return int4 + d2;
-                case "-" : return int4 - d2;
-                case "*" : return int4 * d2;
-                case "/" : return int4 / d2;
-                case "%" : return int4 % d2;
-            }
-        }
-        throw new NotImplementedException();
+            "+" => a + b,
+            "-" => a - b,
+            "*" => a * b,
+            "/" => a / b,
+            "%" => a % b,
+            "<" => a < b,
+            "<=" => a <= b,
+            ">" => a > b,
+            ">=" => a >= b,
+            _ => throw new NotImplementedException(),
+        };
     }
 }
