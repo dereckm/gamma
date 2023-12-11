@@ -6,13 +6,14 @@ public class AstPrinter : AstVisitor
 {
     private int _indentLevel = 0;
     private Action<string> _print = (_) => {};
+    private StringBuilder _sb = new();
 
-    public void Print(AstNode node)
+    public string Print(AstNode node)
     {
-        var sb = new StringBuilder();
-        _print = (str) => sb.AppendLine(str.PadLeft(str.Length + _indentLevel * 2));
+        _sb = new StringBuilder();
+        _print = (str) => _sb.AppendLine(str.PadLeft(str.Length + _indentLevel * 2));
         Visit(node);
-        Console.WriteLine(sb.ToString());
+        return _sb.ToString();
     }
 
     public override void Visit(IfStatementNode node)

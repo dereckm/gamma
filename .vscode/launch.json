@@ -5,12 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "C#: Gamma Web Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/Gamma.Web/bin/Debug/net8.0/Gamma.Web.dll",
+            "preLaunchTask": "build",
+        },
+        {
             "name": "C#: Gamma Console Debug",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/Gamma.Console/Gamma.Console.csproj",
             "preLaunchTask": "build"
         }
-
     ]
 }

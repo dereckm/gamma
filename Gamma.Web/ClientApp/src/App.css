@@ -1,0 +1,9 @@
+body {
+    margin: 0
+}
+
+.container {
+    background-color: #4E5166;
+    height: calc(100vh - (2 * 64px));
+    padding: 64px;
+}
