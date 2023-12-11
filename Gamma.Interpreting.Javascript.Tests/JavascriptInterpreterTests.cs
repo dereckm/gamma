@@ -1,0 +1,84 @@
+using Gamma.Parsing.Javascript;
+using Gamma.Parsing.Javascript.Syntax;
+
+namespace Gamma.Interpreting.Javascript.Tests;
+
+    [TestFixture]
+    public class JavascriptInterpreterTests
+    {
+        [Test]
+        public void TestEvaluateSimpleExpression()
+        {
+            var code = "1 + 2;";
+            var ast = RunTest(code, "BinaryExpressionNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That(result, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void TestEvaluateVariableDeclaration()
+        {
+            var code = "let x = 5;";
+            var ast = RunTest(code, "VariableDeclarationNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That(5, Is.EqualTo(result));
+        }
+
+        [Test]
+        public void TestEvaluateFunctionCall()
+        {
+            var code = "function add(a, b) { return a + b; } add(3, 4);";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That(7, Is.EqualTo(result));
+        }
+
+        [Test]
+        public void TestEvaluateForLoop()
+        {
+            var code = "let sum = 0; for (let i = 1; i <= 5; i++) { sum += i; } sum;";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That(15, Is.EqualTo(result));
+        }
+
+        [Test]
+        public void TestEvaluateIfElseStatement()
+        {
+            var code = "let x = 10; let result = 'a'; if (x > 5) { result = 'greater'; } else { result = 'less or equal'; } result;";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That("greater",  Is.EqualTo(result));
+        }
+
+        private static AstNode RunTest(string code, string expectedNodeType)
+        {
+            var parser = new Parser();
+            var ast = parser.Parse(code);
+            Assert.That(expectedNodeType, Is.EqualTo(ast.GetType().Name));
+            return ast;
+        }
+
+        private static T RunTest<T>(string code, string expectedNodeType) where T : AstNode
+        {
+            var ast = RunTest(code, expectedNodeType);
+            return (T)ast;
+        }
+
+        // Add more tests for different types of expressions and statements
+    }

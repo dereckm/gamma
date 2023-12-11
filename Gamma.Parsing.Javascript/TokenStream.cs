@@ -64,7 +64,8 @@ public class TokenStream
             SkipLine();
             return ReadNext();
         }
-        if (character == '"') return ReadString();
+        if (character == '"') return ReadString('"');
+        if (character == '\'') return ReadString('\'');
         if (IsDigit(character)) return ReadNumber();
         if (IsIdentifierStart(character)) return ReadIdentifier();
         if (IsPunctuation(character)) return new Token(_characterStream.Next(), TokenType.Punctuation);
@@ -130,9 +131,9 @@ public class TokenStream
     }
 
 
-    private Token ReadString() 
+    private Token ReadString(char c) 
     {
-        var str = ReadEscaped('"');
+        var str = ReadEscaped(c);
         return new Token(str, TokenType.String);
     }
 
@@ -156,7 +157,7 @@ public class TokenStream
 
     private static readonly HashSet<string> Keywords = new () { 
         "if", "else", "var", "const", "true", "false", 
-        "let", "function", "for", "function" };
+        "let", "function", "for", "function", "return" };
     private static bool IsKeyword(string identifier) => Keywords.Contains(identifier);
    
     public Exception Throw(string message)

@@ -17,6 +17,16 @@ public abstract class AstNode
     public T As<T>() where T : AstNode => (T)this;
 }
 
+public class FunctionReturn : AstNode
+{
+    public FunctionReturn(string type, AstNode expression) : base(type)
+    {
+        Expression = expression;
+    }
+
+    public AstNode Expression { get; }
+}
+
 public class DeadNode : AstNode 
 { 
     public DeadNode(string type) : base(type) {}
@@ -46,9 +56,10 @@ public class BlockStatementNode : AstNode
 // Declaration nodes
 public class VariableDeclarationNode : AstNode
 {
-    public VariableDeclarationNode(string type, string kind) : base(type) 
+    public VariableDeclarationNode(string type, string kind, IEnumerable<AstNode> declarations) : base(type) 
     {
         Kind = kind;
+        Declarations.AddRange(declarations);
     }
     public string Kind { get; } // e.g., "let", "const", "var"
     public List<AstNode> Declarations { get; } = new List<AstNode>();

@@ -20,6 +20,7 @@ internal class Evaluator : AstVisitor
     {
         _stack = new();
         Visit(astNode);
+        if (_stack.Count == 1) return _stack.Peek();
         return _result;
     }
 
@@ -43,6 +44,34 @@ internal class Evaluator : AstVisitor
         _stack.Push(_env!.Get(node.Name));
     }
 
+    public override void Visit(FunctionCallNode node)
+    {
+        var function = (FunctionDeclarationNode)_env.Get(node.Identifier.Name);
+        if (node.Arguments.Count > function.Parameters.Count)
+            throw new InvalidOperationException("Trying to pass too many arguments..");
+        
+        for(var i = 0; i < node.Arguments.Count; i++)
+        {
+            var argument = node.Arguments[i];
+            Evaluate(argument);
+            var argumentValue = _stack.Pop();
+            var paramIdentifier = function.Parameters[i].As<IdentifierNode>();
+            _env.Def(paramIdentifier.Name, argumentValue);
+        }
+        Visit(function.Body);
+    }
+
+    public override void Visit(FunctionReturn node)
+    {
+        Visit(node.Expression);
+    }
+
+    public override void Visit(FunctionDeclarationNode node)
+    {
+        _env.Set(node.Identifier.Name, node);
+        _stack.Push(node);
+    }
+
     public override void Visit(IfStatementNode node)
     {
         Visit(node.Test);
@@ -57,9 +86,17 @@ internal class Evaluator : AstVisitor
         }
     }
 
+    public override void Visit(VariableDeclarationNode node)
+    {
+        foreach(var declaration in node.Declarations)
+        {
+            Visit(declaration);
+        }
+    }
+
     public override void Visit(BinaryExpressionNode node)
     {
-        if (node.Type.StartsWith("var_declaration_") || node.Type == "assignment")
+        if (node.Type == "assignment")
         {
             Visit(node.Right);
             var result = _stack.Peek();

@@ -43,6 +43,9 @@ namespace Gamma.Parsing.Javascript.Syntax;
                 case UnaryExpressionNode unaryExpressionNode:
                     Visit(unaryExpressionNode);
                     break;
+                case FunctionReturn functionReturn:
+                    Visit(functionReturn);
+                    break;
             }
         }
 
@@ -122,5 +125,10 @@ namespace Gamma.Parsing.Javascript.Syntax;
         public virtual void Visit(UnaryExpressionNode node)
         {
             Visit(node.Operand);
+        }
+
+        public virtual void Visit(FunctionReturn node)
+        {
+            Visit(node.Expression);
         }
     }
