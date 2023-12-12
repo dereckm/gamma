@@ -10,24 +10,26 @@ public class ParserTests
     [Test]
     public void Parse_VariableAssignment_ReturnsBinaryExpressionNode()
     {
-        var ast = RunTest<BinaryExpressionNode>("let x = 42;", "BinaryExpressionNode");
-        Assert.That("var_declaration_let", Is.EqualTo(ast.Type));
-        Assert.That("identifier", Is.EqualTo(ast.Left.Type));
-        Assert.That("number", Is.EqualTo(ast.Right.Type));
-        Assert.That("x", Is.EqualTo(ast.Left.As<IdentifierNode>().Name));
-        Assert.That(42, Is.EqualTo(ast.Right.As<LiteralNode>().Value));
+        var ast = RunTest<VariableDeclarationNode>("let x = 42;", "VariableDeclarationNode");
+        var declaration = ast.Declarations[0].As<BinaryExpressionNode>();
+        Assert.That("assignment", Is.EqualTo(declaration.Type));
+        Assert.That("identifier", Is.EqualTo(declaration.Left.Type));
+        Assert.That("number", Is.EqualTo(declaration.Right.Type));
+        Assert.That("x", Is.EqualTo(declaration.Left.As<IdentifierNode>().Name));
+        Assert.That(42, Is.EqualTo(declaration.Right.As<LiteralNode>().Value));
     }
 
     [Test]
     public void Parse_ExpressionWithVariable_ReturnsBinaryExpressionNode()
     {
-        var ast = RunTest<BinaryExpressionNode>("let y = x + 10;", "BinaryExpressionNode");
-        Assert.That("var_declaration_let", Is.EqualTo(ast.Type));
-        Assert.That("identifier", Is.EqualTo(ast.Left.Type));
-        Assert.That("binary", Is.EqualTo(ast.Right.Type));
+        var ast = RunTest<VariableDeclarationNode>("let y = x + 10;", "VariableDeclarationNode");
+        var declaration = ast.Declarations[0].As<BinaryExpressionNode>();
+        Assert.That("assignment", Is.EqualTo(declaration.Type));
+        Assert.That("identifier", Is.EqualTo(declaration.Left.Type));
+        Assert.That("binary", Is.EqualTo(declaration.Right.Type));
 
-        Assert.That("y", Is.EqualTo(ast.Left.As<IdentifierNode>().Name));
-        var right = ast.Right.As<BinaryExpressionNode>();
+        Assert.That("y", Is.EqualTo(declaration.Left.As<IdentifierNode>().Name));
+        var right = declaration.Right.As<BinaryExpressionNode>();
         Assert.That("identifier", Is.EqualTo(right.Left.Type));
         Assert.That("+", Is.EqualTo(right.Operator));
         Assert.That("number", Is.EqualTo(right.Right.Type));
@@ -40,49 +42,49 @@ public class ParserTests
     [Test]
     public void Parse_ExpressionWithParentheses_ReturnsBinaryExpressionNode()
     {
-        RunTest<BinaryExpressionNode>("let z = (y * 2) + x;", "BinaryExpressionNode");
+        RunTest<VariableDeclarationNode>("let z = (y * 2) + x;", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_SimpleVariableAssignment_ReturnsBinaryExpressionNode()
     {
-        RunTest("let a = 5;", "BinaryExpressionNode");
+        RunTest("let a = 5;", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_ComplexExpression_ReturnsBinaryExpressionNode()
     {
-        RunTest("let b = (a * 3) + 7;", "BinaryExpressionNode");
+        RunTest("let b = (a * 3) + 7;", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_ExpressionWithDivision_ReturnsBinaryExpressionNode()
     {
-        RunTest("let c = b / (a + 2);", "BinaryExpressionNode");
+        RunTest("let c = b / (a + 2);", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_ExpressionWithSubtraction_ReturnsBinaryExpressionNode()
     {
-        RunTest("let d = 2 * (c - b);", "BinaryExpressionNode");
+        RunTest("let d = 2 * (c - b);", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_ExpressionWithMultiplication_ReturnsBinaryExpressionNode()
     {
-        RunTest("let e = d / (c + 1) * 4;", "BinaryExpressionNode");
+        RunTest("let e = d / (c + 1) * 4;", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_ExpressionWithMultipleOperators_ReturnsBinaryExpressionNode()
     {
-        RunTest("let f = (e + 3) / 2;", "BinaryExpressionNode");
+        RunTest("let f = (e + 3) / 2;", "VariableDeclarationNode");
     }
 
     [Test]
     public void Parse_ExpressionWithComparisonOperator_ReturnsBinaryExpressionNode()
     {
-        RunTest("let result = f >= 10;", "BinaryExpressionNode");
+        RunTest("let result = f >= 10;", "VariableDeclarationNode");
     }
 
     #endregion

@@ -42,6 +42,16 @@ public class AstPrinter : AstVisitor
 
     }
 
+    public override void Visit(UnaryExpressionNode node)
+    {
+        _print("unary:");
+        _indentLevel++;
+        _print($"operator: {node.Operator}");
+        _print($"is_suffix: {node.IsSuffix}");
+        Visit(node.Operand);
+        _indentLevel--;
+    }
+
     public override void Visit(IdentifierNode node)
     {
         _print("identifier:");
@@ -57,6 +67,18 @@ public class AstPrinter : AstVisitor
         _indentLevel++;
         _print($"type: {node.Type}");
         _print($"value: {node.Value}");
+        _indentLevel--;
+    }
+
+    public override void Visit(VariableDeclarationNode node)
+    {
+        _print("variable_declaration");
+        _indentLevel++;
+        _print($"type: {node.Kind}");
+        foreach(var declaration in node.Declarations)
+        {
+            Visit(declaration);
+        }
         _indentLevel--;
     }
 }

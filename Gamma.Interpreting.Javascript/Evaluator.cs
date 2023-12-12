@@ -131,9 +131,11 @@ internal class Evaluator : AstVisitor
         {
             case "++":
                 _env.Set(identifier, (int)value + 1);
+                _stack.Push((int)value + 1);
                 break;
             case "--":
                 _env.Set(identifier, (int)value - 1);
+                _stack.Push((int)value - 1);
                 break;
             default: 
                 throw new NotImplementedException($"Unimplemented unary operator: {node.Operator}");
@@ -149,6 +151,7 @@ internal class Evaluator : AstVisitor
         {
             Visit(node.Body);
             Visit(node.Update);
+            var _ = _stack.Pop(); // consume the update
             Visit(node.Test);
             shouldContinue = (bool)_stack.Pop();
         }
