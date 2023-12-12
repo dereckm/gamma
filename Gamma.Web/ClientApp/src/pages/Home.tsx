@@ -64,7 +64,7 @@ const Home = () => {
     <div className='content'>
       <div className="editor">
         <textarea onChange={(v) => setCode(v.currentTarget.value)}>{code}</textarea>
-        {ast !== '' && <div className='code-block'><pre><code>{ast}</code></pre></div>}
+        <div className='code-block'><pre><code>{ast}</code></pre></div>
       </div>
       <div className="controls">
         <button className="control" onClick={handleParseClick}>Parse</button>
