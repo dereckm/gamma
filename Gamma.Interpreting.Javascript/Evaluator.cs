@@ -100,8 +100,21 @@ internal class Evaluator : AstVisitor
         {
             Visit(node.Right);
             var result = _stack.Peek();
-            _env!.Set(node.Left.As<IdentifierNode>().Name, result);
-            return; 
+            if (node.Left is IdentifierNode identifierNode)
+            {
+                _env!.Set(identifierNode.Name, result);
+                return; 
+            }
+            if (node.Left is IndexerCallNode indexerCallNode)
+            {
+                var identifier = indexerCallNode.Identifier.Name;
+                var obj = (List<object>)_env.Get(identifier);
+                Visit(indexerCallNode.Argument);
+                var indexObj = _stack.Pop();
+                var index = GetIndex(indexObj);
+                obj[index] = result;
+                return;
+            }
         }
 
         Visit(node.Left);
@@ -141,6 +154,58 @@ internal class Evaluator : AstVisitor
                 throw new NotImplementedException($"Unimplemented unary operator: {node.Operator}");
         }
     }
+
+    public override void Visit(ArrayNode node)
+    {
+        var values = new List<object>();
+        foreach(var item in node.Items)
+        {
+            Visit(item);
+            var itemValue = _stack.Pop();
+            values.Add(itemValue);
+        }
+        _stack.Push(values);
+    }
+
+    private static int GetIndex(object indexObject)
+    {
+        if (indexObject is int integer) 
+            return integer;
+        else if (indexObject is string str && int.TryParse(str, out var stringInteger))
+            return stringInteger;
+        throw new NotImplementedException($"Type of indexer is not supported! Type={indexObject.GetType().Name}");
+    }
+
+    public override void Visit(MemberExpression node)
+    {
+        var objectName = node.Object.Name;
+        var @object = _env.Get(objectName);
+
+        var property = node.Property.As<IdentifierNode>();
+        var propertyName = property.Name;
+        
+        if (@object is List<object> list) 
+        {
+            switch (propertyName)
+            {
+                case "length":
+                    _stack.Push(list.Count);
+                    break;
+                default:
+                    throw new NotImplementedException($"Member doesn't exist on array ([]), Member={propertyName}");
+            }
+        }
+    }
+
+    public override void Visit(IndexerCallNode node)
+    {
+        var identifier = node.Identifier.Name;
+        var array = (List<object>)_env.Get(identifier);
+        Visit(node.Argument);
+        var indexObject = _stack.Pop();
+        var index = GetIndex(indexObject);
+        _stack.Push(array[index]);
+    }   
 
     public override void Visit(ForStatementNode node)
     {

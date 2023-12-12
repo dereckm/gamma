@@ -46,6 +46,15 @@ namespace Gamma.Parsing.Javascript.Syntax;
                 case FunctionReturn functionReturn:
                     Visit(functionReturn);
                     break;
+                case ArrayNode array:
+                    Visit(array);
+                    break;
+                case IndexerCallNode indexerCallNode:
+                    Visit(indexerCallNode);
+                    break;
+                case MemberExpression memberExpression:
+                    Visit(memberExpression);
+                    break;
             }
         }
 
@@ -130,5 +139,24 @@ namespace Gamma.Parsing.Javascript.Syntax;
         public virtual void Visit(FunctionReturn node)
         {
             Visit(node.Expression);
+        }
+
+        public virtual void Visit(ArrayNode node)
+        {
+            foreach(var item in node.Items)
+            {
+                Visit(item);
+            }
+        }
+
+        public virtual void Visit(IndexerCallNode node)
+        {
+            Visit(node.Argument);
+        }
+
+        public virtual void Visit(MemberExpression node)
+        {
+            Visit(node.Object);
+            Visit(node.Property);
         }
     }

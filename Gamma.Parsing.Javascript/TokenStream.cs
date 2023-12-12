@@ -146,18 +146,18 @@ public class TokenStream
     private static bool IsWhitespace(char character) => char.IsWhiteSpace(character);
     private static bool IsDigit(char character) => char.IsDigit(character);
 
-    private static readonly HashSet<char> Operators = new() { '+', '-', '*', '/', '%', '=', '&', '|', '<', '>', '!' };
+    private static readonly HashSet<char> Operators = ['+', '-', '*', '/', '%', '=', '&', '|', '<', '>', '!'];
     public static bool IsOperator(char character) => Operators.Contains(character);
 
-    private static readonly HashSet<char> Punctuation = new() { ',', ';', '(', ')', '{', '}', '[', ']', '.' };
+    private static readonly HashSet<char> Punctuation = [',', ';', '(', ')', '{', '}', '[', ']', '.'];
     private static bool IsPunctuation(char character) => Punctuation.Contains(character);
     private static bool IsIdentifierStart(char character) => char.IsLetter(character) || character == '_';
 
-    private static bool IsIdentifier(char character) => IsIdentifierStart(character) || IsDigit(character) || character == '.';
+    private static bool IsIdentifier(char character) => IsIdentifierStart(character) || IsDigit(character);
 
-    private static readonly HashSet<string> Keywords = new () { 
+    private static readonly HashSet<string> Keywords = [ 
         "if", "else", "var", "const", "true", "false", 
-        "let", "function", "for", "function", "return" };
+        "let", "function", "for", "function", "return" ];
     private static bool IsKeyword(string identifier) => Keywords.Contains(identifier);
    
     public Exception Throw(string message)

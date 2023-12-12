@@ -27,6 +27,18 @@ public class FunctionReturn : AstNode
     public AstNode Expression { get; }
 }
 
+public class MemberExpression : AstNode
+{
+    public MemberExpression(IdentifierNode @object, AstNode property) : base("member")
+    {
+        Object = @object;
+        Property = property;
+    }
+
+    public IdentifierNode Object { get; }
+    public AstNode Property { get; }
+}
+
 public class DeadNode : AstNode 
 { 
     public DeadNode(string type) : base(type) {}
@@ -41,6 +53,16 @@ public class ProgramNode : AstNode
     }
 
     public List<AstNode> Body { get; } = new List<AstNode>();
+}
+
+public class ArrayNode : AstNode
+{
+    public ArrayNode(IEnumerable<AstNode> items) : base("array") 
+    {
+        Items.AddRange(items);
+    }
+
+    public List<AstNode> Items { get; } = new ();
 }
 
 public class BlockStatementNode : AstNode
@@ -144,6 +166,19 @@ public class FunctionCallNode : AstNode
     public IdentifierNode Identifier { get; }
 
     public List<AstNode> Arguments { get; } = new();
+}
+
+public class IndexerCallNode : AstNode
+{
+    public IndexerCallNode(IdentifierNode identifierNode, AstNode argument) : base("indexer_call")
+    {
+        Identifier = identifierNode;
+        Argument = argument;
+    }
+
+    public IdentifierNode Identifier { get; }
+
+    public AstNode Argument { get; }
 }
 
 // // Function-related nodes

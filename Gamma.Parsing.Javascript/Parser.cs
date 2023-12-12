@@ -56,7 +56,8 @@ public class Parser
         }
         if (token.Type == TokenType.Identifier) 
         {
-            return MaybeCall();
+            var identifier = MaybeMember(ParseVariable());
+            return MaybeIndexer(MaybeCall(identifier));
         }
         if (token.Is(TokenType.Punctuation, "("))
         {
@@ -94,8 +95,42 @@ public class Parser
             _tokens.Consume(token);
             return AstNode.Dead;
         }
+        if (token.Is(TokenType.Punctuation, "["))
+        {
+            return ParseArray();
+        }
 
         throw new NotImplementedException();
+    }
+
+    public AstNode ParseArray()
+    {
+        var items = new List<AstNode>();
+        _tokens.Consume(new Token("[", TokenType.Punctuation));
+        while (!_tokens.Peek().Is(TokenType.Punctuation, "]"))
+        {
+            var expression = ParseExpression();
+            items.Add(expression);
+
+            if (_tokens.Peek().Is(TokenType.Punctuation, ","))
+                _tokens.Consume(_tokens.Peek());
+        }
+        _tokens.Consume(new Token("]", TokenType.Punctuation));
+
+        return new ArrayNode(items);
+    }
+
+    public AstNode MaybeMember(AstNode node) 
+    {
+        var next = _tokens.Peek();
+        if (next.Is(TokenType.Punctuation, ".") && node is IdentifierNode @object) 
+        {
+            _tokens.Consume(next);
+            var member = ParseExpression();
+            return new MemberExpression(@object, member);
+        }
+
+        return node;
     }
 
     public AstNode ParseFunctionDeclaration()
@@ -107,9 +142,10 @@ public class Parser
         while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
         {
             var expression = ParseExpression();
+            parameters.Add(expression);
+            
             if (_tokens.Peek().Is(TokenType.Punctuation, ","))
                 _tokens.Consume(_tokens.Peek());
-            parameters.Add(expression);
         }
         _tokens.Consume(new Token(")", TokenType.Punctuation));
         var body = ParseExpression();
@@ -121,12 +157,26 @@ public class Parser
             body);
     }
 
-    public AstNode MaybeCall() 
+    public AstNode MaybeIndexer(AstNode node)
     {
-        var identifier = ParseVariable();
+        var next = _tokens.Peek();
+        if (next.Is(TokenType.Punctuation, "[") && node is IdentifierNode identifier)
+        {
+            _tokens.Consume(next);
+            var argument = ParseExpression();
+            _tokens.Consume(new Token("]", TokenType.Punctuation));
+            var indexerCall = new IndexerCallNode(identifier, argument);
+            return MaybeBinary(MaybeAssignment(indexerCall), 0);
+        }
+
+        return node;
+    }
+
+    public AstNode MaybeCall(AstNode node) 
+    {
         var next = _tokens.Peek();
         var arguments = new List<AstNode>();
-        if (next.Is(TokenType.Punctuation, "("))
+        if (next.Is(TokenType.Punctuation, "(") && node is IdentifierNode identifier)
         {
             _tokens.Consume(next);
             while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
@@ -138,14 +188,15 @@ public class Parser
                     arguments.Add(expression);
             }
             _tokens.Consume(new Token(")", TokenType.Punctuation));
-            return new FunctionCallNode(
+            var functionCall = new FunctionCallNode(
                 "function_call",
                 identifier,
                 arguments
                 );
+            return MaybeBinary(functionCall, 0);
         }
 
-        return MaybeBinary(MaybeAssignment(identifier), 0);
+        return MaybeBinary(MaybeAssignment(node), 0);
     }
 
     public AstNode ParseForLoop()
@@ -233,6 +284,7 @@ public class Parser
             ? statements[0] 
             : new BlockStatementNode("block", statements);
     }
+
 
     public AstNode ParseIfStatement()
     {

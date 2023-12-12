@@ -66,6 +66,54 @@ namespace Gamma.Interpreting.Javascript.Tests;
             Assert.That("greater",  Is.EqualTo(result));
         }
 
+        [Test]
+        public void TestTestEvaluateArrayDeclaration()
+        {
+            var code = "let myArray = [1, 2, 3]; myArray;";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 2, 3 }));
+        }
+
+        [Test]
+        public void TestEvaluateArrayAccess()
+        {
+            var code = "let myArray = [1, 2, 3]; myArray[1];";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That(result, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void TestEvaluateArrayModification()
+        {
+            var code = "let myArray = [1, 2, 3]; myArray[1] = 10; myArray;";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 10, 3 }));
+        }
+
+        [Test]
+        public void TestEvaluateArrayLength()
+        {
+            var code = "let myArray = [1, 2, 3]; myArray.length;";
+            var ast = RunTest(code, "ProgramNode");
+
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+
+            Assert.That(result, Is.EqualTo(3));
+        }
+
         private static AstNode RunTest(string code, string expectedNodeType)
         {
             var parser = new Parser();

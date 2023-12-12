@@ -63,7 +63,7 @@ public class AstPrinter : AstVisitor
 
     public override void Visit(LiteralNode node)
     {
-        _print("literal");
+        _print("literal:");
         _indentLevel++;
         _print($"type: {node.Type}");
         _print($"value: {node.Value}");
@@ -72,13 +72,43 @@ public class AstPrinter : AstVisitor
 
     public override void Visit(VariableDeclarationNode node)
     {
-        _print("variable_declaration");
+        _print("variable_declaration:");
         _indentLevel++;
         _print($"type: {node.Kind}");
         foreach(var declaration in node.Declarations)
         {
             Visit(declaration);
         }
+        _indentLevel--;
+    }
+
+    public override void Visit(ArrayNode node)
+    {
+        _print("array:");
+        _print("[");
+        _indentLevel++;
+        foreach(var item in node.Items)
+        {
+            Visit(item);
+        }
+        _indentLevel--;
+        _print("]");
+    }
+
+    public override void Visit(IndexerCallNode node)
+    {
+        _print("indexer_call:");
+        _indentLevel++;
+        Visit(node.Identifier);
+        Visit(node.Argument);
+        _indentLevel--;
+    }
+
+    public override void Visit(MemberExpression node)
+    {
+        _print("member:");
+        _indentLevel++;
+        base.Visit(node);
         _indentLevel--;
     }
 }

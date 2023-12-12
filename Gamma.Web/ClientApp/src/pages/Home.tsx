@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import './Home.css'
-import Notification, { useNotification } from '../components/Notification.tsx'
+import Notification, { useNotification } from '../components/Notification'
 
 
 const Home = () => {

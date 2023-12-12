@@ -22,10 +22,10 @@ const Notification = (props: NotificationProps) => {
         <div className='notification' style={{backgroundColor: color}}>{message}</div>
     )
 }
-const defaultNotification = { type: "error", message: '' }
+const defaultNotification: NotificationProps = { type: "error", message: '' }
 export const useNotification = () => {
     const [notification, setNotification] = useState(defaultNotification);
-    const displayNotification = (msg, type) => {
+    const displayNotification = (msg: string, type: NotificationType) => {
         setNotification({ message: msg, type: type })
         setTimeout(() => setNotification(defaultNotification), 5_000)
 }
