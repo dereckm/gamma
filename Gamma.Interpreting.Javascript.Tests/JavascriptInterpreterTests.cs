@@ -114,6 +114,32 @@ namespace Gamma.Interpreting.Javascript.Tests;
             Assert.That(result, Is.EqualTo(3));
         }
 
+        [Test]
+        public void NestedFunctionCallAndForLoop()
+        {
+            string code = """
+                    let myArray = [1, 2, 3]; myArray[1] = 10;
+                    function pow2(n)
+                    {
+                    return n * n;
+                    }
+                    function sumArray(arr)
+                    {
+                    let sum = 0;
+                    for(var i = 0; i < arr.length; i++)
+                    {
+                        sum += pow2(arr[i]);
+                    }
+                    return sum;
+                    }
+                    sumArray(myArray);
+                    """;
+            var ast = RunTest(code, "ProgramNode");
+            var interpreter = new JavascriptInterpreter();
+            var result = interpreter.Evaluate(ast);
+            Assert.That(110, Is.EqualTo(result));
+        }
+
         private static AstNode RunTest(string code, string expectedNodeType)
         {
             var parser = new Parser();

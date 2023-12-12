@@ -41,7 +41,8 @@ internal class Evaluator : AstVisitor
 
     public override void Visit(IdentifierNode node)
     {
-        _stack.Push(_env!.Get(node.Name));
+        var value = _env!.Get(node.Name);
+        _stack.Push(value);
     }
 
     public override void Visit(FunctionCallNode node)
@@ -118,14 +119,12 @@ internal class Evaluator : AstVisitor
         }
 
         Visit(node.Left);
+        var left = _stack.Pop();
         Visit(node.Right);
         var right = _stack.Pop();
-        var left = _stack.Pop();
 
-        
         if (node.Operator == "+=") 
         {
-
             var incrementedValue = ApplyOperator("+", left, right);
             var identifier = node.Left.As<IdentifierNode>();
             _env!.Set(identifier.Name, incrementedValue);

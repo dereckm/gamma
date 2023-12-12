@@ -104,6 +104,21 @@ public class AstPrinter : AstVisitor
         _indentLevel--;
     }
 
+    public override void Visit(FunctionCallNode node)
+    {
+        _print("function_call:");
+        _indentLevel++;
+        Visit(node.Identifier);
+        _print("arguments:");
+        _indentLevel++;
+        foreach(var argument in node.Arguments)
+        {
+            Visit(argument);
+        }
+        _indentLevel--;
+        _indentLevel--;
+    }
+
     public override void Visit(MemberExpression node)
     {
         _print("member:");

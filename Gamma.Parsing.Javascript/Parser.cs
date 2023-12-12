@@ -328,12 +328,13 @@ public class Parser
             var otherPrecendence = _precendences[token.Value];
             if (otherPrecendence > myPrecendence) 
             {
+                var right = ParseExpression();
                 return MaybeBinary(
                     new BinaryExpressionNode(
                         "binary",
                         left,
                         operatorToken.Value,
-                        MaybeBinary(ParseExpression(), otherPrecendence))
+                        MaybeBinary(right, otherPrecendence))
                     , myPrecendence);
             }
         }
