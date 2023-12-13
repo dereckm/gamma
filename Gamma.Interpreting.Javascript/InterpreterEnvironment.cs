@@ -56,6 +56,8 @@ internal class InterpreterEnvironment
 
     public void Def(string name, object value, string type)
     {
+        if (_variables.ContainsKey(name)) 
+            throw new Exception($"Already defined in scope: \"{name}\"");
         _variables[name] = new Variable { Value = value, Type = type };
     }
 

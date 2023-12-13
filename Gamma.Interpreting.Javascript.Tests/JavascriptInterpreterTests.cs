@@ -173,6 +173,19 @@ namespace Gamma.Interpreting.Javascript.Tests;
            Assert.That(exception!.Message, Is.EqualTo("Illegal assignment on const variable: \"x\""));
         }
 
+        [Test]
+        public void PreventFunctionRedefinition()
+        {
+            string code = """
+                function a() { return 1; }
+                function a() { return 3; }
+            """;
+            var ast = RunTest(code, "ProgramNode");
+            var interpreter = new JavascriptInterpreter();
+            var exception = Assert.Throws<Exception>(() => interpreter.Evaluate(ast));
+           Assert.That(exception!.Message, Is.EqualTo("Already defined in scope: \"a\""));
+        }
+
         private static AstNode RunTest(string code, string expectedNodeType)
         {
             var parser = new Parser();
