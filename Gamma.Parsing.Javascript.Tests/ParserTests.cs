@@ -217,26 +217,55 @@ public class ParserTests
         public void TestSimpleFunctionDeclaration()
         {
             var code = "function simpleFunction() { var x; }";
-            var ast = RunTest(code, "FunctionDeclarationNode");
+            var ast = RunTest(code, nameof(NamedFunctionDeclarationNode));
 
             // Additional assertions based on your AST structure
-            Assert.That("simpleFunction", Is.EqualTo(((FunctionDeclarationNode)ast).Identifier.Name));
-            Assert.That(0, Is.EqualTo(((FunctionDeclarationNode)ast).Parameters.Count));
-            Assert.That("identifier", Is.EqualTo(ast.As<FunctionDeclarationNode>().Body.Type));
+            Assert.That("simpleFunction", Is.EqualTo(((NamedFunctionDeclarationNode)ast).Identifier.Name));
+            Assert.That(0, Is.EqualTo(((NamedFunctionDeclarationNode)ast).Parameters.Count));
+            Assert.That("identifier", Is.EqualTo(ast.As<NamedFunctionDeclarationNode>().Body.Type));
         }
 
         [Test]
         public void TestFunctionDeclarationWithParameters()
         {
             var code = "function functionWithParams(param1, param2) { var x; }";
-            var ast = RunTest(code, "FunctionDeclarationNode");
+            var ast = RunTest(code, nameof(NamedFunctionDeclarationNode));
 
             // Additional assertions based on your AST structure
-            Assert.That("functionWithParams", Is.EqualTo(((FunctionDeclarationNode)ast).Identifier.Name));
-            Assert.That(2, Is.EqualTo(((FunctionDeclarationNode)ast).Parameters.Count));
-            Assert.That("param1", Is.EqualTo(((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[0]).Name));
-            Assert.That("param2", Is.EqualTo(((IdentifierNode)((FunctionDeclarationNode)ast).Parameters[1]).Name));
-            Assert.That("identifier", Is.EqualTo(ast.As<FunctionDeclarationNode>().Body.Type));
+            Assert.That("functionWithParams", Is.EqualTo(((NamedFunctionDeclarationNode)ast).Identifier.Name));
+            Assert.That(2, Is.EqualTo(((NamedFunctionDeclarationNode)ast).Parameters.Count));
+            Assert.That("param1", Is.EqualTo(((IdentifierNode)((NamedFunctionDeclarationNode)ast).Parameters[0]).Name));
+            Assert.That("param2", Is.EqualTo(((IdentifierNode)((NamedFunctionDeclarationNode)ast).Parameters[1]).Name));
+            Assert.That("identifier", Is.EqualTo(ast.As<NamedFunctionDeclarationNode>().Body.Type));
+        }
+    }
+
+    [TestFixture]
+    public class AnonymousFunctionDeclarations
+    {
+        [Test]
+        public void ShouldParseSingleArgumentSingleExpressionAnonymousFunction()
+        {
+            var code = "let x = (n) => n * n;";
+            var ast = RunTest<VariableDeclarationNode>(code, nameof(VariableDeclarationNode));
+            var binaryExp = ast.Declarations[0].As<BinaryExpressionNode>();
+            var anonymousFn = binaryExp.Right.As<AnonymousFunctionDeclaration>();
+
+            Assert.That(anonymousFn.Parameters.Count, Is.EqualTo(1));
+            Assert.That(anonymousFn.Parameters[0].As<IdentifierNode>().Name, Is.EqualTo("n"));
+        }
+        
+        [Test]
+        public void ShouldParseMultiArgumentsSingleExpressionAnonymousFunction()
+        {
+            var code = "let x = (a, b) => a * b;";
+            var ast = RunTest<VariableDeclarationNode>(code, nameof(VariableDeclarationNode));
+            var binaryExp = ast.Declarations[0].As<BinaryExpressionNode>();
+            var anonymousFn = binaryExp.Right.As<AnonymousFunctionDeclaration>();
+
+            Assert.That(anonymousFn.Parameters.Count, Is.EqualTo(2));
+            Assert.That(anonymousFn.Parameters[0].As<IdentifierNode>().Name, Is.EqualTo("a"));
+            Assert.That(anonymousFn.Parameters[1].As<IdentifierNode>().Name, Is.EqualTo("b"));
         }
     }
 

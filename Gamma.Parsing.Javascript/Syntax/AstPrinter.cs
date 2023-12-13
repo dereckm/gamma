@@ -55,10 +55,7 @@ public class AstPrinter : AstVisitor
     public override void Visit(IdentifierNode node)
     {
         _print("identifier:");
-        _indentLevel++;
-        _print($"name: {node.Name}");
-        _indentLevel--;
-        base.Visit(node);
+        Indented(() => _print($"name: {node.Name}"));
     }
 
     public override void Visit(LiteralNode node)
@@ -72,7 +69,7 @@ public class AstPrinter : AstVisitor
 
     public override void Visit(VariableDeclarationNode node)
     {
-        _print("variable_declaration:");
+        _print("variable_decl:");
         _indentLevel++;
         _print($"type: {node.Kind}");
         foreach(var declaration in node.Declarations)
@@ -98,15 +95,15 @@ public class AstPrinter : AstVisitor
     public override void Visit(IndexerCallNode node)
     {
         _print("indexer_call:");
-        _indentLevel++;
-        Visit(node.Identifier);
-        Visit(node.Argument);
-        _indentLevel--;
+        Indented(() => {
+            Visit(node.Identifier);
+            Visit(node.Argument);
+        });
     }
 
     public override void Visit(FunctionCallNode node)
     {
-        _print("function_call:");
+        _print("fn_call:");
         _indentLevel++;
         Visit(node.Identifier);
         _print("arguments:");
@@ -119,11 +116,32 @@ public class AstPrinter : AstVisitor
         _indentLevel--;
     }
 
+    private void Indented(Action action)
+    {
+        _indentLevel++;
+        action();
+        _indentLevel--;
+    }
+
+    public override void Visit(AnonymousFunctionDeclaration node)
+    {
+        _print("anonymous_fn_declaration:");
+        Indented(() => {
+            _print("parameters:");
+            Indented(() => {
+                foreach(var parameter in node.Parameters)
+                {
+                    Visit(parameter);
+                }
+            });
+            _print("body:");
+            Indented(() => Visit(node.Body));
+        });
+    }
+
     public override void Visit(MemberExpression node)
     {
         _print("member:");
-        _indentLevel++;
-        base.Visit(node);
-        _indentLevel--;
+        Indented(() => base.Visit(node));
     }
 }

@@ -55,6 +55,6 @@ public class JavascriptController : ControllerBase
 
     public class ParserPayload
     {
-        public string Code { get; set;}
+        public string Code { get; set;} = "";
     }
 }

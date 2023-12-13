@@ -19,7 +19,7 @@ namespace Gamma.Parsing.Javascript.Syntax;
                 case VariableDeclarationNode variableDeclarationNode:
                     Visit(variableDeclarationNode);
                     break;
-                case FunctionDeclarationNode functionDeclarationNode:
+                case NamedFunctionDeclarationNode functionDeclarationNode:
                     Visit(functionDeclarationNode);
                     break;
                 case IdentifierNode identifierNode:
@@ -55,6 +55,9 @@ namespace Gamma.Parsing.Javascript.Syntax;
                 case MemberExpression memberExpression:
                     Visit(memberExpression);
                     break;
+                case AnonymousFunctionDeclaration anonymousFunction:
+                    Visit(anonymousFunction);
+                    break;
             }
         }
 
@@ -82,7 +85,7 @@ namespace Gamma.Parsing.Javascript.Syntax;
             }
         }
 
-        public virtual void Visit(FunctionDeclarationNode node)
+        public virtual void Visit(NamedFunctionDeclarationNode node)
         {
             foreach (var param in node.Parameters)
             {
@@ -158,5 +161,14 @@ namespace Gamma.Parsing.Javascript.Syntax;
         {
             Visit(node.Object);
             Visit(node.Property);
+        }
+
+        public virtual void Visit(AnonymousFunctionDeclaration node)
+        {
+            foreach(var parameter in node.Parameters)
+            {
+                Visit(parameter);
+            }
+            Visit(node.Body);
         }
     }

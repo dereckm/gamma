@@ -5,6 +5,9 @@ namespace Gamma.Parsing;
 [DebuggerDisplay("{Value}, Type={Type}")]
 public class Token
 {
+    public static Token OpenParenthesis => new("(", TokenType.Punctuation);
+    public static Token CloseParenthesis => new(")", TokenType.Punctuation);
+
     public string Value { get; }
     public TokenType Type { get; }
 

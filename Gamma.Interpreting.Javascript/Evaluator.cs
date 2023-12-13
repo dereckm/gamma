@@ -47,7 +47,7 @@ internal class Evaluator : AstVisitor
 
     public override void Visit(FunctionCallNode node)
     {
-        var function = (FunctionDeclarationNode)_env.Get(node.Identifier.Name);
+        var function = (FunctionDeclaration)_env.Get(node.Identifier.Name);
         if (node.Arguments.Count > function.Parameters.Count)
             throw new InvalidOperationException("Trying to pass too many arguments..");
         
@@ -67,7 +67,7 @@ internal class Evaluator : AstVisitor
         Visit(node.Expression);
     }
 
-    public override void Visit(FunctionDeclarationNode node)
+    public override void Visit(NamedFunctionDeclarationNode node)
     {
         _env.Set(node.Identifier.Name, node);
         _stack.Push(node);
@@ -219,6 +219,11 @@ internal class Evaluator : AstVisitor
             Visit(node.Test);
             shouldContinue = (bool)_stack.Pop();
         }
+    }
+
+    public override void Visit(AnonymousFunctionDeclaration node)
+    {
+        _stack.Push(node);
     }
 
     private object ApplyOperator(string op, object a, object b)

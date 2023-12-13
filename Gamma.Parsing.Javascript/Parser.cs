@@ -59,12 +59,12 @@ public class Parser
             var identifier = MaybeMember(ParseVariable());
             return MaybeIndexer(MaybeCall(identifier));
         }
-        if (token.Is(TokenType.Punctuation, "("))
+        if (token.Is(Token.OpenParenthesis))
         {
-            _tokens.Consume(new Token("(", TokenType.Punctuation));
+            _tokens.Consume(Token.OpenParenthesis);
             var expression = ParseExpression();
-            _tokens.Consume(new Token(")", TokenType.Punctuation));
-            return MaybeBinary(expression, 0);
+            var maybeAnonymousFn = MaybeAnonymousFunctionDeclaration(expression);
+            return MaybeBinary(maybeAnonymousFn, 0);
         }
         if (token.Is(TokenType.Operator) 
             && token.Value is "++" or "--")
@@ -103,6 +103,33 @@ public class Parser
         throw new NotImplementedException();
     }
 
+    public AstNode MaybeAnonymousFunctionDeclaration(AstNode node) 
+    {
+        var next = _tokens.Peek();
+        var parameters = new List<AstNode>() { node };
+        if (next.Is(TokenType.Punctuation, ","))
+        {
+            _tokens.Consume(next);
+            while (!_tokens.Peek().Is(Token.CloseParenthesis))
+            {
+                var argument = ParseExpression();
+                parameters.Add(argument);
+                if (_tokens.Peek().Is(TokenType.Punctuation, ","))
+                    _tokens.Consume(_tokens.Peek());
+            }
+        }
+        _tokens.Consume(Token.CloseParenthesis);
+        next = _tokens.Peek();
+        if (next.Is(TokenType.Operator, "=>"))
+        {
+            _tokens.Consume(next);
+            var body = ParseExpression();
+            return new AnonymousFunctionDeclaration(parameters, body);
+        }
+
+        return node;
+    }
+
     public AstNode ParseArray()
     {
         var items = new List<AstNode>();
@@ -137,7 +164,7 @@ public class Parser
     {
         _tokens.Consume(new Token("function", TokenType.Keyword));
         var identifier = ParseIdentifier();
-        _tokens.Consume(new Token("(", TokenType.Punctuation));
+        _tokens.Consume(Token.OpenParenthesis);
         var parameters = new List<AstNode>();
         while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
         {
@@ -147,10 +174,10 @@ public class Parser
             if (_tokens.Peek().Is(TokenType.Punctuation, ","))
                 _tokens.Consume(_tokens.Peek());
         }
-        _tokens.Consume(new Token(")", TokenType.Punctuation));
+        _tokens.Consume(Token.CloseParenthesis);
         var body = ParseExpression();
 
-        return new FunctionDeclarationNode(
+        return new NamedFunctionDeclarationNode(
             "function_declaration",
             identifier,
             parameters,
@@ -176,7 +203,7 @@ public class Parser
     {
         var next = _tokens.Peek();
         var arguments = new List<AstNode>();
-        if (next.Is(TokenType.Punctuation, "(") && node is IdentifierNode identifier)
+        if (next.Is(Token.OpenParenthesis) && node is IdentifierNode identifier)
         {
             _tokens.Consume(next);
             while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
@@ -187,7 +214,7 @@ public class Parser
                 if (expression is not DeadNode)
                     arguments.Add(expression);
             }
-            _tokens.Consume(new Token(")", TokenType.Punctuation));
+            _tokens.Consume(Token.CloseParenthesis);
             var functionCall = new FunctionCallNode(
                 "function_call",
                 identifier,
@@ -206,7 +233,7 @@ public class Parser
         var update = AstNode.Dead;
 
         _tokens.Consume(new Token("for", TokenType.Keyword));
-        _tokens.Consume(new Token("(", TokenType.Punctuation));
+        _tokens.Consume(Token.OpenParenthesis);
 
         var next = _tokens.Peek();
         if (!next.Is(TokenType.Punctuation, ";")) {
@@ -221,11 +248,11 @@ public class Parser
         _tokens.Consume(new Token(";", TokenType.Punctuation));
 
         next = _tokens.Peek();
-        if (!next.Is(TokenType.Punctuation, ")")) {
+        if (!next.Is(Token.CloseParenthesis)) {
             update = ParseExpression();
         }
 
-        _tokens.Consume(new Token(")", TokenType.Punctuation));
+        _tokens.Consume(Token.CloseParenthesis);
         var body = ParseExpression();
 
 
