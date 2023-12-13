@@ -87,52 +87,101 @@ namespace Gamma.Interpreting.Javascript.Tests;
             Assert.That("greater",  Is.EqualTo(result));
         }
 
-        [Test]
-        public void TestTestEvaluateArrayDeclaration()
+        [TestFixture]
+        public class Arrays 
         {
-            var code = "let myArray = [1, 2, 3]; myArray;";
-            var ast = RunTest(code, "ProgramNode");
+            [Test]
+            public void TestEvaluateArrayDeclaration()
+            {
+                var code = "let myArray = [1, 2, 3]; myArray;";
+                var ast = RunTest(code, "ProgramNode");
 
-            var interpreter = new JavascriptInterpreter();
-            var result = interpreter.Evaluate(ast);
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
 
-            Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 2, 3 }));
-        }
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 2, 3 }));
+            }
 
-        [Test]
-        public void TestEvaluateArrayAccess()
-        {
-            var code = "let myArray = [1, 2, 3]; myArray[1];";
-            var ast = RunTest(code, "ProgramNode");
+            [Test]
+            public void TestEvaluateArrayAccess()
+            {
+                var code = "let myArray = [1, 2, 3]; myArray[1];";
+                var ast = RunTest(code, "ProgramNode");
 
-            var interpreter = new JavascriptInterpreter();
-            var result = interpreter.Evaluate(ast);
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
 
-            Assert.That(result, Is.EqualTo(2));
-        }
+                Assert.That(result, Is.EqualTo(2));
+            }
 
-        [Test]
-        public void TestEvaluateArrayModification()
-        {
-            var code = "let myArray = [1, 2, 3]; myArray[1] = 10; myArray;";
-            var ast = RunTest(code, "ProgramNode");
+            [Test]
+            public void TestEvaluateArrayModification()
+            {
+                var code = "let myArray = [1, 2, 3]; myArray[1] = 10; myArray;";
+                var ast = RunTest(code, "ProgramNode");
 
-            var interpreter = new JavascriptInterpreter();
-            var result = interpreter.Evaluate(ast);
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
 
-            Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 10, 3 }));
-        }
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 10, 3 }));
+            }
 
-        [Test]
-        public void TestEvaluateArrayLength()
-        {
-            var code = "let myArray = [1, 2, 3]; myArray.length;";
-            var ast = RunTest(code, "ProgramNode");
+            [Test]
+            public void TestEvaluateArrayLength()
+            {
+                var code = "let myArray = [1, 2, 3]; myArray.length;";
+                var ast = RunTest(code, "ProgramNode");
 
-            var interpreter = new JavascriptInterpreter();
-            var result = interpreter.Evaluate(ast);
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
 
-            Assert.That(result, Is.EqualTo(3));
+                Assert.That(result, Is.EqualTo(3));
+            }
+
+            [Test]
+            public void TestEvaluateArrayPush()
+            {  
+                var code = """
+                    let arr = [1, 2, 3];
+                    arr.push(4);
+                    arr;
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 2, 3, 4 }));
+            }
+
+            [Test]
+            public void TestEvaluateArrayPop()
+            {  
+                var code = """
+                    let arr = [1, 2, 3];
+                    arr.pop();
+                    arr;
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 2 }));
+            }
+
+            [Test]
+            public void TestEvaluateArraySome()
+            {  
+                var code = """
+                    let arr = [1, 2, 3];
+                    arr.some((n) => n % 2 === 0);
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((bool)result, Is.True);
+            }
+
         }
 
         [Test]

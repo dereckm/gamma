@@ -56,7 +56,7 @@ public class Parser
         }
         if (token.Type == TokenType.Identifier) 
         {
-            var identifier = MaybeMember(ParseVariable());
+            var identifier = MaybeMember(ParseIdentifier());
             return MaybeIndexer(MaybeCall(identifier));
         }
         if (token.Is(Token.OpenParenthesis))
@@ -290,12 +290,6 @@ public class Parser
         return new LiteralNode("string", token.Value);
     }
 
-    public IdentifierNode ParseVariable()
-    {
-        var identifierToken = _tokens.Next();
-        return new IdentifierNode("identifier", identifierToken.Value);
-    }
-
     public AstNode ParseStatementBlock()
     {
         _tokens.Consume(new Token("{", TokenType.Punctuation));
@@ -408,6 +402,6 @@ public class Parser
     {
         var identifierToken = _tokens.Next();
         if (identifierToken.Type != TokenType.Identifier) throw _tokens.Throw("Expected identifier token.");
-        return new IdentifierNode("identifier", identifierToken.Value);
+        return new IdentifierNode(identifierToken.Value);
     }
 }

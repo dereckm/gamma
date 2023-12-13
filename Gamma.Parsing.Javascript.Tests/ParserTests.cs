@@ -10,7 +10,7 @@ public class ParserTests
     public class Assignments
     {
         [Test]
-        public void Parse_VariableAssignment_ReturnsBinaryExpressionNode()
+        public void Parse_VariableAssignment_ReturnsVariableDeclarationNode()
         {
             var ast = RunTest<VariableDeclarationNode>("let x = 42;", "VariableDeclarationNode");
             var declaration = ast.Declarations[0].As<BinaryExpressionNode>();
@@ -22,7 +22,7 @@ public class ParserTests
         }
 
         [Test]
-        public void Parse_ExpressionWithVariable_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithVariable_ReturnsVariableDeclarationNode()
         {
             var ast = RunTest<VariableDeclarationNode>("let y = x + 10;", "VariableDeclarationNode");
             var declaration = ast.Declarations[0].As<BinaryExpressionNode>();
@@ -42,51 +42,61 @@ public class ParserTests
         }
 
         [Test]
-        public void Parse_ExpressionWithParentheses_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithParentheses_ReturnsVariableDeclarationNode()
         {
             RunTest<VariableDeclarationNode>("let z = (y * 2) + x;", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_SimpleVariableAssignment_ReturnsBinaryExpressionNode()
+        public void Parse_SimpleVariableAssignment_ReturnsVariableDeclarationNode()
         {
             RunTest("let a = 5;", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_ComplexExpression_ReturnsBinaryExpressionNode()
+        public void Parse_ComplexExpression_ReturnsVariableDeclarationNode()
         {
             RunTest("let b = (a * 3) + 7;", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_ExpressionWithDivision_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithDivision_ReturnsVariableDeclarationNode()
         {
             RunTest("let c = b / (a + 2);", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_ExpressionWithSubtraction_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithSubtraction_ReturnsVariableDeclarationNode()
         {
             RunTest("let d = 2 * (c - b);", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_ExpressionWithMultiplication_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithMultiplication_ReturnsVariableDeclarationNode()
         {
             RunTest("let e = d / (c + 1) * 4;", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_ExpressionWithMultipleOperators_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithMultipleOperators_ReturnsVariableDeclarationNode()
         {
             RunTest("let f = (e + 3) / 2;", "VariableDeclarationNode");
         }
 
         [Test]
-        public void Parse_ExpressionWithComparisonOperator_ReturnsBinaryExpressionNode()
+        public void Parse_ExpressionWithComparisonOperator_ReturnsVariableDeclarationNode()
         {
             RunTest("let result = f >= 10;", "VariableDeclarationNode");
+        }
+
+        [Test]
+        public void Parse_Expression_RespectsPrecendence()
+        {
+            var result = RunTest<VariableDeclarationNode>("let result = 10 % 2 + 3;", "VariableDeclarationNode");
+            var binary = result.Declarations[0]
+                .As<BinaryExpressionNode>()
+                .Right.As<BinaryExpressionNode>();
+            Assert.That(binary.Left.Type, Is.EqualTo("binary"));
         }
     }
 
@@ -118,13 +128,13 @@ public class ParserTests
         }
 
         [Test]
-        public void Parse_CompoundAssignment_ReturnsBinaryExpressionNode()
+        public void Parse_CompoundAssignment_ReturnsVariableDeclarationNode()
         {
             RunTest("z += 10;", "BinaryExpressionNode");
         }
 
         [Test]
-        public void Parse_CompoundAssignmentWithVariable_ReturnsBinaryExpressionNode()
+        public void Parse_CompoundAssignmentWithVariable_ReturnsVariableDeclarationNode()
         {
             RunTest("a += b;", "BinaryExpressionNode");
         }

@@ -101,7 +101,7 @@ public class NamedFunctionDeclarationNode(
 }
 
 // Expression nodes
-public class IdentifierNode(string type, string name) : AstNode(type)
+public class IdentifierNode(string name) : AstNode("identifier")
 {
     public string Name { get; } = name;
 }

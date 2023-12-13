@@ -4,7 +4,7 @@ using Gamma.Parsing.Javascript.Syntax;
 
 namespace Gamma.Interpreting.Javascript;
 
-internal class Evaluator : AstVisitor
+internal partial class Evaluator : AstVisitor
 {
     private InterpreterEnvironment? _env;
     private object _result;
@@ -214,19 +214,11 @@ internal class Evaluator : AstVisitor
         var objectName = node.Object.Name;
         var @object = _env!.Get(objectName);
 
-        var property = node.Property.As<IdentifierNode>();
-        var propertyName = property.Name;
-        
+
         if (@object is List<object> list) 
         {
-            switch (propertyName)
-            {
-                case "length":
-                    _stack.Push(list.Count);
-                    break;
-                default:
-                    throw new NotImplementedException($"Member doesn't exist on array ([]), Member={propertyName}");
-            }
+            var evaluator = new ArrayEvaluator(list, node, this);
+            evaluator.Evaluate();
         }
     }
 
