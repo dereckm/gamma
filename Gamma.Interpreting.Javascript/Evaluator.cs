@@ -41,7 +41,7 @@ internal class Evaluator : AstVisitor
         foreach(var expression in node.Body)
         {
             Visit(expression);
-            if (_returnTracker.Contains(_env))
+            if (_returnTracker.Contains(_env!))
              return;
         }
     }
@@ -60,7 +60,7 @@ internal class Evaluator : AstVisitor
     public override void Visit(FunctionCallNode node)
     {
         var env = _env;
-        _env = _env.Extend();
+        _env = _env!.Extend();
         var function = (FunctionDeclaration)_env.Get(node.Identifier.Name);
         if (node.Arguments.Count > function.Parameters.Count)
             throw new InvalidOperationException("Trying to pass too many arguments..");
@@ -71,7 +71,7 @@ internal class Evaluator : AstVisitor
             Evaluate(argument);
             var argumentValue = _stack.Pop();
             var paramIdentifier = function.Parameters[i].As<IdentifierNode>();
-            _env.Def(paramIdentifier.Name, argumentValue);
+            _env.Def(paramIdentifier.Name, argumentValue, "let");
         }
         Visit(function.Body);
         _env = env;
@@ -79,13 +79,13 @@ internal class Evaluator : AstVisitor
 
     public override void Visit(FunctionReturn node)
     {
-        _returnTracker.Add(_env);
+        _returnTracker.Add(_env!);
         Visit(node.Expression);
     }
 
     public override void Visit(NamedFunctionDeclarationNode node)
     {
-        _env.Set(node.Identifier.Name, node);
+        _env!.Def(node.Identifier.Name, node, "const");
         _stack.Push(node);
     }
 
@@ -107,7 +107,26 @@ internal class Evaluator : AstVisitor
     {
         foreach(var declaration in node.Declarations)
         {
-            Visit(declaration);
+            if (declaration is BinaryExpressionNode binary)
+            {
+                Visit(binary.Right);
+                var result = _stack.Peek();
+                switch (binary.Left)
+                {
+                    case IdentifierNode identifierNode:
+                        _env!.Def(identifierNode.Name, result, node.Kind);
+                        break;
+                    case IndexerCallNode indexerCallNode:
+                        var identifier = indexerCallNode.Identifier.Name;
+                        var obj = (List<object>)_env!.Get(identifier);
+                        Visit(indexerCallNode.Argument);
+                        var indexObj = _stack.Pop();
+                        var index = GetIndex(indexObj);
+                        obj[index] = result;
+                        break;
+                        
+                }
+            }
         }
     }
 
@@ -117,20 +136,19 @@ internal class Evaluator : AstVisitor
         {
             Visit(node.Right);
             var result = _stack.Peek();
-            if (node.Left is IdentifierNode identifierNode)
+            switch (node.Left)
             {
-                _env.Def(identifierNode.Name, result);
-                return; 
-            }
-            if (node.Left is IndexerCallNode indexerCallNode)
-            {
-                var identifier = indexerCallNode.Identifier.Name;
-                var obj = (List<object>)_env.Get(identifier);
-                Visit(indexerCallNode.Argument);
-                var indexObj = _stack.Pop();
-                var index = GetIndex(indexObj);
-                obj[index] = result;
-                return;
+                case IdentifierNode identifierNode:
+                    _env!.Set(identifierNode.Name, result);
+                    return;
+                case IndexerCallNode indexerCallNode:
+                    var identifier = indexerCallNode.Identifier.Name;
+                    var obj = (List<object>)_env!.Get(identifier);
+                    Visit(indexerCallNode.Argument);
+                    var indexObj = _stack.Pop();
+                    var index = GetIndex(indexObj);
+                    obj[index] = result;
+                    return;
             }
         }
 
@@ -194,7 +212,7 @@ internal class Evaluator : AstVisitor
     public override void Visit(MemberExpression node)
     {
         var objectName = node.Object.Name;
-        var @object = _env.Get(objectName);
+        var @object = _env!.Get(objectName);
 
         var property = node.Property.As<IdentifierNode>();
         var propertyName = property.Name;
@@ -215,7 +233,7 @@ internal class Evaluator : AstVisitor
     public override void Visit(IndexerCallNode node)
     {
         var identifier = node.Identifier.Name;
-        var array = (List<object>)_env.Get(identifier);
+        var array = (List<object>)_env!.Get(identifier);
         Visit(node.Argument);
         var indexObject = _stack.Pop();
         var index = GetIndex(indexObject);
@@ -252,7 +270,7 @@ internal class Evaluator : AstVisitor
             return ApplyOperator(op, double2, int4);
         if (a is double double3 && b is double double4)
             return ApplyOperator(op, double3, double4);
-        throw new NotImplementedException("Type combinaison not supported: ({a.GetType().Name}, {b.GetType().Name})");
+        throw new NotImplementedException($"Type combinaison not supported: ({a.GetType().Name}, {b.GetType().Name})");
     }
 
     private object ApplyOperator<T>(string op, T a, T b)

@@ -2,7 +2,7 @@ namespace Gamma.Interpreting.Javascript;
 
 internal class InterpreterEnvironment
 {
-    private Dictionary<string, object> _variables;
+    private Dictionary<string, Variable> _variables;
     private InterpreterEnvironment? _parent;
 
     public InterpreterEnvironment(InterpreterEnvironment? parent = null)
@@ -11,7 +11,7 @@ internal class InterpreterEnvironment
         _variables = new();
         if (parent != null) 
         {
-            _variables = new Dictionary<string, object>(parent._variables);
+            _variables = new Dictionary<string, Variable>(parent._variables);
         }
         _parent = parent;
     }
@@ -36,7 +36,7 @@ internal class InterpreterEnvironment
     public object Get(string name)
     {
         if (_variables.ContainsKey(name))
-            return _variables[name];
+            return _variables[name].Value;
         throw new Exception($"Undefined variable {name}");
     }
 
@@ -45,11 +45,23 @@ internal class InterpreterEnvironment
         var scope = Lookup(name);
         if (scope == null && _parent != null)
             throw new Exception($"Undefined variable {name}");
-        (scope ?? this)._variables[name] = value;
+
+        
+        var validScope = scope ?? this;
+        var variable = validScope._variables[name];
+        if (variable.Type == "const")
+            throw new Exception($"Illegal assingment on const variable: \"{name}\"");
+        validScope._variables[name] = new Variable { Value = value, Type = variable.Type };
     }
 
-    public void Def(string name, object value)
+    public void Def(string name, object value, string type)
     {
-        _variables[name] = value;
+        _variables[name] = new Variable { Value = value, Type = type };
+    }
+
+    private class Variable 
+    {
+        public object Value { get; set; } = new object();
+        public string Type { get; set; } = "let";
     }
 }

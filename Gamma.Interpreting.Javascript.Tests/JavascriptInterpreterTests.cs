@@ -160,6 +160,19 @@ namespace Gamma.Interpreting.Javascript.Tests;
             Assert.That(110, Is.EqualTo(result));
         }
 
+        [Test]
+        public void PreventConstantRedefinition()
+        {
+            string code = """
+                const x = 5;
+                x = 3;
+            """;
+            var ast = RunTest(code, "ProgramNode");
+            var interpreter = new JavascriptInterpreter();
+            var exception = Assert.Throws<Exception>(() => interpreter.Evaluate(ast));
+           Assert.That(exception!.Message, Is.EqualTo("Illegal assingment on const variable: \"x\""));
+        }
+
         private static AstNode RunTest(string code, string expectedNodeType)
         {
             var parser = new Parser();
