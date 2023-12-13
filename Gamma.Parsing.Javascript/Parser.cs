@@ -28,7 +28,7 @@ public class Parser
         return new ProgramNode("program", statements);
     }
 
-    public AstNode ParseExpression() 
+    public AstNode ParseAtom()
     {
         var token = _tokens.Peek();
         if (token.Type == TokenType.Keyword)
@@ -48,12 +48,44 @@ public class Parser
         }
         if (token.Type == TokenType.Number)
         {
-            return MaybeBinary(ParseNumber(), 0);
+            return ParseNumber();
         }
         if (token.Type == TokenType.String) 
         {
-            return MaybeBinary(ParseString(), 0);
+            return ParseString();
         }
+        if (token.Type == TokenType.Identifier) 
+        {
+            return ParseIdentifier();
+        }
+         if (token.Is(TokenType.Operator) 
+            && token.Value is "++" or "--")
+        {
+            var operatorToken = _tokens.Next();
+            var type = operatorToken.Value == "++" ? "inc" : "dec";
+            var operand = ParseAtom();
+            return new UnaryExpressionNode(type, operand, operatorToken.Value);
+        }
+        if (token.Is(TokenType.Operator) && token.Value is "-")
+        {
+            var operatorToken = _tokens.Next();
+            var operand = ParseAtom();
+            return new UnaryExpressionNode("minus", operand, operatorToken.Value);
+        }
+        if (token.Is(TokenType.Operator) && token.Value is "!")
+        {
+            var operatorToken = _tokens.Next();
+            var operand = ParseAtom();
+            return new UnaryExpressionNode("not", operand, operatorToken.Value);
+        }
+
+        throw new NotImplementedException();
+    }
+
+    public AstNode ParseExpression() 
+    {
+        var token = _tokens.Peek();
+        
         if (token.Type == TokenType.Identifier) 
         {
             var identifier = MaybeMember(ParseIdentifier());
@@ -61,31 +93,11 @@ public class Parser
         }
         if (token.Is(Token.OpenParenthesis))
         {
-            _tokens.Consume(Token.OpenParenthesis);
-            var expression = ParseExpression();
-            var maybeAnonymousFn = MaybeAnonymousFunctionDeclaration(expression);
+            var expressions = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
+            var maybeAnonymousFn = MaybeAnonymousFunctionDeclaration(expressions);
             return MaybeBinary(maybeAnonymousFn, 0);
         }
-        if (token.Is(TokenType.Operator) 
-            && token.Value is "++" or "--")
-        {
-            var operatorToken = _tokens.Next();
-            var type = operatorToken.Value == "++" ? "inc" : "dec";
-            var operand = ParseExpression();
-            return new UnaryExpressionNode(type, operand, operatorToken.Value);
-        }
-        if (token.Is(TokenType.Operator) && token.Value is "-")
-        {
-            var operatorToken = _tokens.Next();
-            var operand = ParseExpression();
-            return new UnaryExpressionNode("minus", operand, operatorToken.Value);
-        }
-        if (token.Is(TokenType.Operator) && token.Value is "!")
-        {
-            var operatorToken = _tokens.Next();
-            var operand = ParseExpression();
-            return new UnaryExpressionNode("not", operand, operatorToken.Value);
-        }
+       
         if (token.Is(TokenType.Punctuation, "{"))
         {
            return ParseStatementBlock();
@@ -99,28 +111,23 @@ public class Parser
         {
             return ParseArray();
         }
+        var atom = ParseAtom();
+        return MaybeBinary(atom, 0);
 
         throw new NotImplementedException();
     }
 
-    public AstNode MaybeAnonymousFunctionDeclaration(AstNode node) 
+    public AstNode MaybeAnonymousFunctionDeclaration(List<AstNode> nodes) 
     {
         var next = _tokens.Peek();
-        var parameters = new List<AstNode>() { node };
-        if (next.Is(TokenType.Punctuation, ","))
-        {
-            parameters.AddRange(Delimited(Token.OpenParenthesis, Token.CloseParenthesis));
-        }
-        _tokens.Consume(Token.CloseParenthesis);
-        next = _tokens.Peek();
         if (next.Is(TokenType.Operator, "=>"))
         {
             _tokens.Consume(next);
             var body = ParseExpression();
-            return new AnonymousFunctionDeclaration(parameters, body);
+            return new AnonymousFunctionDeclaration(nodes, body);
         }
 
-        return node;
+        return nodes[0];
     }
 
     public List<AstNode> Delimited(Token start, Token end)
@@ -304,6 +311,7 @@ public class Parser
     public AstNode MaybeBinary(AstNode left, int myPrecendence) 
     {
         var token = _tokens.Peek();
+        if (token == null) return left;
         if (token.Is(TokenType.Operator) &&
             token.Value is "++" or "--")
         {
