@@ -109,14 +109,7 @@ public class Parser
         var parameters = new List<AstNode>() { node };
         if (next.Is(TokenType.Punctuation, ","))
         {
-            _tokens.Consume(next);
-            while (!_tokens.Peek().Is(Token.CloseParenthesis))
-            {
-                var argument = ParseExpression();
-                parameters.Add(argument);
-                if (_tokens.Peek().Is(TokenType.Punctuation, ","))
-                    _tokens.Consume(_tokens.Peek());
-            }
+            parameters.AddRange(Delimited(Token.OpenParenthesis, Token.CloseParenthesis));
         }
         _tokens.Consume(Token.CloseParenthesis);
         next = _tokens.Peek();
@@ -130,19 +123,26 @@ public class Parser
         return node;
     }
 
-    public AstNode ParseArray()
+    public List<AstNode> Delimited(Token start, Token end)
     {
-        var items = new List<AstNode>();
-        _tokens.Consume(new Token("[", TokenType.Punctuation));
-        while (!_tokens.Peek().Is(TokenType.Punctuation, "]"))
+        var expressions = new List<AstNode>();
+        _tokens.Consume(start);
+        while (!_tokens.Peek().Is(end))
         {
             var expression = ParseExpression();
-            items.Add(expression);
+            if (expression is not DeadNode)
+                expressions.Add(expression);
 
-            if (_tokens.Peek().Is(TokenType.Punctuation, ","))
+            if (_tokens.Peek().Is(Token.Comma))
                 _tokens.Consume(_tokens.Peek());
         }
-        _tokens.Consume(new Token("]", TokenType.Punctuation));
+        _tokens.Consume(end);
+        return expressions;
+    }
+
+    public AstNode ParseArray()
+    {
+        var items = Delimited(Token.OpenBracket, Token.CloseBracket);
 
         return new ArrayNode(items);
     }
@@ -164,17 +164,7 @@ public class Parser
     {
         _tokens.Consume(new Token("function", TokenType.Keyword));
         var identifier = ParseIdentifier();
-        _tokens.Consume(Token.OpenParenthesis);
-        var parameters = new List<AstNode>();
-        while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
-        {
-            var expression = ParseExpression();
-            parameters.Add(expression);
-            
-            if (_tokens.Peek().Is(TokenType.Punctuation, ","))
-                _tokens.Consume(_tokens.Peek());
-        }
-        _tokens.Consume(Token.CloseParenthesis);
+        var parameters = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
         var body = ParseExpression();
 
         return new NamedFunctionDeclarationNode(
@@ -202,19 +192,10 @@ public class Parser
     public AstNode MaybeCall(AstNode node) 
     {
         var next = _tokens.Peek();
-        var arguments = new List<AstNode>();
+        
         if (next.Is(Token.OpenParenthesis) && node is IdentifierNode identifier)
         {
-            _tokens.Consume(next);
-            while (!_tokens.Peek().Is(TokenType.Punctuation, ")")) 
-            {
-                var expression = ParseExpression();
-                if (_tokens.Peek().Is(TokenType.Punctuation, ","))
-                    _tokens.Consume(_tokens.Peek());
-                if (expression is not DeadNode)
-                    arguments.Add(expression);
-            }
-            _tokens.Consume(Token.CloseParenthesis);
+            var arguments = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
             var functionCall = new FunctionCallNode(
                 "function_call",
                 identifier,
@@ -292,15 +273,7 @@ public class Parser
 
     public AstNode ParseStatementBlock()
     {
-        _tokens.Consume(new Token("{", TokenType.Punctuation));
-        var statements = new List<AstNode>();
-        while (!_tokens.Peek().Is(TokenType.Punctuation, "}")) 
-        {
-            var expression = ParseExpression();
-            if (expression is not DeadNode)
-                statements.Add(expression);
-        }
-        _tokens.Consume(new Token("}", TokenType.Punctuation));
+        var statements = Delimited(Token.OpenBrace, Token.CloseBrace);
         return statements.Count == 1 
             ? statements[0] 
             : new BlockStatementNode("block", statements);

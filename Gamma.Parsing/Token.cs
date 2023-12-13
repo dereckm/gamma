@@ -7,6 +7,11 @@ public class Token
 {
     public static Token OpenParenthesis => new("(", TokenType.Punctuation);
     public static Token CloseParenthesis => new(")", TokenType.Punctuation);
+    public static Token Comma => new(",", TokenType.Punctuation);
+    public static Token OpenBracket => new("[", TokenType.Punctuation);
+    public static Token CloseBracket => new("]", TokenType.Punctuation);
+    public static Token OpenBrace => new("{", TokenType.Punctuation);
+    public static Token CloseBrace => new("}", TokenType.Punctuation);
 
     public string Value { get; }
     public TokenType Type { get; }
