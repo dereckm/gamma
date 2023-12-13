@@ -31,6 +31,10 @@ public class Parser
     public AstNode ParseAtom()
     {
         var token = _tokens.Peek();
+        if (token.Is(Token.OpenParenthesis))
+        {
+            return Delimited(Token.OpenParenthesis, Token.CloseParenthesis)[0];
+        }
         if (token.Type == TokenType.Keyword)
         {
             if (token.Value == "let" || token.Value == "const" || token.Value == "var")
@@ -56,7 +60,8 @@ public class Parser
         }
         if (token.Type == TokenType.Identifier) 
         {
-            return ParseIdentifier();
+            var identifier = MaybeMember(ParseIdentifier());
+            return MaybeIndexer(MaybeCall(identifier));
         }
          if (token.Is(TokenType.Operator) 
             && token.Value is "++" or "--")
@@ -85,12 +90,6 @@ public class Parser
     public AstNode ParseExpression() 
     {
         var token = _tokens.Peek();
-        
-        if (token.Type == TokenType.Identifier) 
-        {
-            var identifier = MaybeMember(ParseIdentifier());
-            return MaybeIndexer(MaybeCall(identifier));
-        }
         if (token.Is(Token.OpenParenthesis))
         {
             var expressions = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
@@ -326,18 +325,18 @@ public class Parser
 
         if (token.Is(TokenType.Operator)) 
         {
-            var operatorToken = _tokens.Next();
             var otherPrecendence = _precendences[token.Value];
             if (otherPrecendence > myPrecendence) 
             {
-                var right = ParseExpression();
-                return MaybeBinary(
-                    new BinaryExpressionNode(
+                var operatorToken = _tokens.Next();
+                var right = MaybeBinary(ParseAtom(), otherPrecendence);
+                var binary = new BinaryExpressionNode(
                         "binary",
                         left,
                         operatorToken.Value,
-                        MaybeBinary(right, otherPrecendence))
-                    , myPrecendence);
+                        right);
+                
+                return MaybeBinary(binary, myPrecendence);
             }
         }
 

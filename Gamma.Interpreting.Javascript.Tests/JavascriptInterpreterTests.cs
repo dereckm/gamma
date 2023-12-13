@@ -169,7 +169,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
             }
 
             [Test]
-            public void TestEvaluateArraySome()
+            public void TestEvaluateArraySomeTrue()
             {  
                 var code = """
                     let arr = [1, 2, 3];
@@ -180,6 +180,20 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
                 Assert.That((bool)result, Is.True);
+            }
+
+            [Test]
+            public void TestEvaluateArraySomeFalse()
+            {  
+                var code = """
+                    let arr = [1, 3, 5];
+                    arr.some((n) => n % 2 === 0);
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((bool)result, Is.False);
             }
 
         }
