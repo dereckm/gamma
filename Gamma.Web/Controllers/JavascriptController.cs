@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using Gamma.Interpreting.Javascript;
 using Gamma.Parsing.Javascript;
 using Gamma.Parsing.Javascript.Syntax;

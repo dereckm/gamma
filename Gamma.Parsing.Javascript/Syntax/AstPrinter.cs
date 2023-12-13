@@ -139,6 +139,29 @@ public class AstPrinter : AstVisitor
         });
     }
 
+    public override void Visit(FunctionReturn node)
+    {
+        _print("return_statement:");
+        Indented(() => Visit(node.Expression));
+    }
+
+    public override void Visit(NamedFunctionDeclarationNode node)
+    {
+        _print("fn_declaration:");
+        Indented(() => {
+            Visit(node.Identifier);
+            _print("parameters:");
+            Indented(() => {
+                foreach(var parameter in node.Parameters)
+                {
+                    Visit(parameter);
+                }
+            });
+            _print("body:");
+            Indented(() => Visit(node.Body));
+        });
+    }
+
     public override void Visit(MemberExpression node)
     {
         _print("member:");

@@ -9,6 +9,7 @@ internal class Evaluator : AstVisitor
     private InterpreterEnvironment? _env;
     private object _result;
     private Stack<object> _stack = new();
+    private HashSet<InterpreterEnvironment> _returnTracker = new();
 
     public Evaluator(InterpreterEnvironment env)
     {
@@ -34,6 +35,17 @@ internal class Evaluator : AstVisitor
         }
     }
 
+    public override void Visit(BlockStatementNode node)
+    {
+        _returnTracker = new();
+        foreach(var expression in node.Body)
+        {
+            Visit(expression);
+            if (_returnTracker.Contains(_env))
+             return;
+        }
+    }
+
     public override void Visit(LiteralNode node)
     {
         _stack.Push(node.Value);
@@ -47,6 +59,8 @@ internal class Evaluator : AstVisitor
 
     public override void Visit(FunctionCallNode node)
     {
+        var env = _env;
+        _env = _env.Extend();
         var function = (FunctionDeclaration)_env.Get(node.Identifier.Name);
         if (node.Arguments.Count > function.Parameters.Count)
             throw new InvalidOperationException("Trying to pass too many arguments..");
@@ -60,10 +74,12 @@ internal class Evaluator : AstVisitor
             _env.Def(paramIdentifier.Name, argumentValue);
         }
         Visit(function.Body);
+        _env = env;
     }
 
     public override void Visit(FunctionReturn node)
     {
+        _returnTracker.Add(_env);
         Visit(node.Expression);
     }
 
@@ -103,7 +119,7 @@ internal class Evaluator : AstVisitor
             var result = _stack.Peek();
             if (node.Left is IdentifierNode identifierNode)
             {
-                _env!.Set(identifierNode.Name, result);
+                _env.Def(identifierNode.Name, result);
                 return; 
             }
             if (node.Left is IndexerCallNode indexerCallNode)
@@ -253,6 +269,8 @@ internal class Evaluator : AstVisitor
             "<=" => a <= b,
             ">" => a > b,
             ">=" => a >= b,
+            "==" => a == b,
+            "===" => a == b,
             _ => throw new NotImplementedException(),
         };
     }
