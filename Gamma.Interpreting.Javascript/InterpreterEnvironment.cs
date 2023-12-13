@@ -50,7 +50,7 @@ internal class InterpreterEnvironment
         var validScope = scope ?? this;
         var variable = validScope._variables[name];
         if (variable.Type == "const")
-            throw new Exception($"Illegal assingment on const variable: \"{name}\"");
+            throw new Exception($"Illegal assignment on const variable: \"{name}\"");
         validScope._variables[name] = new Variable { Value = value, Type = variable.Type };
     }
 

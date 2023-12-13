@@ -170,7 +170,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
             var ast = RunTest(code, "ProgramNode");
             var interpreter = new JavascriptInterpreter();
             var exception = Assert.Throws<Exception>(() => interpreter.Evaluate(ast));
-           Assert.That(exception!.Message, Is.EqualTo("Illegal assingment on const variable: \"x\""));
+           Assert.That(exception!.Message, Is.EqualTo("Illegal assignment on const variable: \"x\""));
         }
 
         private static AstNode RunTest(string code, string expectedNodeType)
