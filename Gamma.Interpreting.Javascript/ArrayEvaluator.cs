@@ -6,11 +6,11 @@ internal partial class Evaluator
 {
     private class ArrayEvaluator
     {
-        private List<object> _list;
+        private JavascriptArray _list;
         private MemberExpression _node;
         private Evaluator _evaluator;
 
-        internal ArrayEvaluator(List<object> list, MemberExpression node, Evaluator evaluator)
+        internal ArrayEvaluator(JavascriptArray list, MemberExpression node, Evaluator evaluator)
         {
             _list = list;
             _node = node;
@@ -115,7 +115,7 @@ internal partial class Evaluator
             var callback = fnCall.Arguments[0];
             var tempVar = Guid.NewGuid().ToString();
             _evaluator._env!.Def(tempVar, callback, "const");
-            var mappedValues = new List<object>();
+            var mappedValues = new JavascriptArray();
             for(var i = 0; i < _list.Count; i++)
             {
                 var item = _list[i];

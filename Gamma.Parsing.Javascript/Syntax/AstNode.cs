@@ -15,9 +15,9 @@ public class FunctionReturn(string type, AstNode expression) : AstNode(type)
     public AstNode Expression { get; } = expression;
 }
 
-public class MemberExpression(IdentifierNode @object, AstNode property) : AstNode("member")
+public class MemberExpression(AstNode @object, AstNode property) : AstNode("member")
 {
-    public IdentifierNode Object { get; } = @object;
+    public AstNode Object { get; } = @object;
     public AstNode Property { get; } = property;
 }
 

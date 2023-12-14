@@ -49,7 +49,7 @@ internal partial class Evaluator
             var arg = fnCall.Arguments[0];
             _evaluator.Visit(arg);
             var separator = (string)_evaluator._stack.Pop();
-            var results = _str.Split(separator).ToList<object>();
+            var results = new JavascriptArray(_str.Split(separator));
             _evaluator._stack.Push(results);
         }
 

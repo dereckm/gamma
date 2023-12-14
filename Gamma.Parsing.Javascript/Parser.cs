@@ -56,7 +56,11 @@ public class Parser
         }
         if (token.Type == TokenType.String) 
         {
-            return ParseString();
+            var str = ParseString();
+            str = MaybeMember(str);
+            str = MaybeCall(str);
+            str = MaybeIndexer(str);
+            return str;
         }
         if (token.Type == TokenType.Identifier) 
         {
@@ -159,11 +163,11 @@ public class Parser
     public AstNode MaybeMember(AstNode node) 
     {
         var next = _tokens.Peek();
-        if (next.Is(TokenType.Punctuation, ".") && node is IdentifierNode @object) 
+        if (next.Is(TokenType.Punctuation, ".")) 
         {
             _tokens.Consume(next);
             var member = ParseExpression();
-            return new MemberExpression(@object, member);
+            return new MemberExpression(node, member);
         }
 
         return node;

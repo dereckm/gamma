@@ -288,6 +288,19 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 var result = interpreter.Evaluate(ast);
                 Assert.That(result, Is.EquivalentTo(new List<object> { "hello", "world" }));
             }
+
+            [Test]
+            public void TestEvaluateStringLengthOnLiteral()
+            {
+                var code = """
+                    'abc'.length;
+                """;
+                var ast = RunTest(code, nameof(MemberExpression));
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.EqualTo(3));
+            }
         }
 
         [Test]

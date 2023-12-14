@@ -118,7 +118,7 @@ internal partial class Evaluator : AstVisitor
                         break;
                     case IndexerCallNode indexerCallNode:
                         var identifier = indexerCallNode.Identifier.Name;
-                        var obj = (List<object>)_env!.Get(identifier);
+                        var obj = (JavascriptArray)_env!.Get(identifier);
                         Visit(indexerCallNode.Argument);
                         var indexObj = _stack.Pop();
                         var index = GetIndex(indexObj);
@@ -143,7 +143,7 @@ internal partial class Evaluator : AstVisitor
                     return;
                 case IndexerCallNode indexerCallNode:
                     var identifier = indexerCallNode.Identifier.Name;
-                    var obj = (List<object>)_env!.Get(identifier);
+                    var obj = (JavascriptArray)_env!.Get(identifier);
                     Visit(indexerCallNode.Argument);
                     var indexObj = _stack.Pop();
                     var index = GetIndex(indexObj);
@@ -191,7 +191,7 @@ internal partial class Evaluator : AstVisitor
 
     public override void Visit(ArrayNode node)
     {
-        var values = new List<object>();
+        var values = new JavascriptArray();
         foreach(var item in node.Items)
         {
             Visit(item);
@@ -212,11 +212,17 @@ internal partial class Evaluator : AstVisitor
 
     public override void Visit(MemberExpression node)
     {
-        var objectName = node.Object.Name;
-        var @object = _env!.Get(objectName);
-
-
-        if (@object is List<object> list) 
+        object @object = new Undefined();
+        if (node.Object is IdentifierNode identifierNode) 
+        {
+            @object = _env!.Get(identifierNode.Name);
+        }
+        else if (node.Object is LiteralNode literalNode)
+        {
+            @object = literalNode.Value;
+        }
+        
+        if (@object is JavascriptArray list) 
         {
             var evaluator = new ArrayEvaluator(list, node, this);
             evaluator.Evaluate();
@@ -231,7 +237,7 @@ internal partial class Evaluator : AstVisitor
     public override void Visit(IndexerCallNode node)
     {
         var identifier = node.Identifier.Name;
-        var array = (List<object>)_env!.Get(identifier);
+        var array = (JavascriptArray)_env!.Get(identifier);
         Visit(node.Argument);
         var indexObject = _stack.Pop();
         var index = GetIndex(indexObject);
