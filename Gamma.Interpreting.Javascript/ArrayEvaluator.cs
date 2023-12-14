@@ -44,9 +44,31 @@ internal partial class Evaluator
                 case "some":
                     EvaluateSome();
                     break;
+                case "map":
+                    EvaluateMap();
+                    break;
+                case "reverse":
+                    EvaluateReverse();
+                    break;
+                case "shift":
+                    EvaluateShift();
+                    break;
                 default:
                     throw new NotImplementedException($"Member doesn't exist on array ([]), Member={identifier}");
             }
+        }
+
+        private void EvaluateShift()
+        {
+            var slicedItem = _list[0];
+            _list.RemoveAt(0);
+            _evaluator._stack.Push(slicedItem);
+        }
+
+        private void EvaluateReverse()
+        {
+            _list.Reverse();
+            _evaluator._stack.Push(_list);
         }
 
         private void EvaluatePush()
@@ -70,11 +92,12 @@ internal partial class Evaluator
         {
             var fnCall = _node.Property.As<FunctionCallNode>();
             var predicate = fnCall.Arguments[0];
-            _evaluator._env.Def("$abc", predicate, "const");
+            var tempVar = Guid.NewGuid().ToString();
+            _evaluator._env!.Def(tempVar, predicate, "const");
             foreach(var item in _list)
             {
                 var arg = new LiteralNode("object", item);
-                var predicateCall = new FunctionCallNode("anonymous_fn_call", new IdentifierNode("$abc"), new [] { arg });
+                var predicateCall = new FunctionCallNode("anonymous_fn_call", new IdentifierNode(tempVar), new [] { arg });
                 _evaluator.Visit(predicateCall);
                 var result = (bool)_evaluator._stack.Pop();
                 if (result) 
@@ -84,6 +107,25 @@ internal partial class Evaluator
                 }
             }
             _evaluator._stack.Push(false);
+        }
+
+        private void EvaluateMap()
+        {
+            var fnCall = _node.Property.As<FunctionCallNode>();
+            var callback = fnCall.Arguments[0];
+            var tempVar = Guid.NewGuid().ToString();
+            _evaluator._env!.Def(tempVar, callback, "const");
+            var mappedValues = new List<object>();
+            for(var i = 0; i < _list.Count; i++)
+            {
+                var item = _list[i];
+                var arg = new LiteralNode("object", item);
+                var predicateCall = new FunctionCallNode("anonymous_fn_call", new IdentifierNode(tempVar), new [] { arg });
+                _evaluator.Visit(predicateCall);
+                var mappedValue = _evaluator._stack.Pop();
+                mappedValues.Add(mappedValue);
+            }
+            _evaluator._stack.Push(mappedValues);
         }
 
         private void EvaluateAccessor(IdentifierNode identifier)

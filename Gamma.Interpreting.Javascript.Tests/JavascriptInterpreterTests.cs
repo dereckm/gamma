@@ -196,6 +196,49 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 Assert.That((bool)result, Is.False);
             }
 
+            [Test]
+            public void TestEvaluateArrayMap()
+            {
+                var code = """
+                    let arr = [1, 2, 3];
+                    arr.map((n) => n * 2);
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 2, 4, 6 }));
+            }
+
+            [Test]
+            public void TestEvaluateArrayReverse()
+            {
+                var code = """
+                    let arr = [1, 2, 3];
+                    arr.reverse();
+                    arr;
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 3, 2, 1 }));
+            }
+
+            [Test]
+            public void TestEvaluateArraySlice()
+            {
+                var code = """
+                    let arr = [1, 2, 3];
+                    arr.shift();
+                    arr;
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 2, 3 }));
+            }
         }
 
         [Test]

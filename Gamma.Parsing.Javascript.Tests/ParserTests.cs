@@ -277,6 +277,18 @@ public class ParserTests
             Assert.That(anonymousFn.Parameters[0].As<IdentifierNode>().Name, Is.EqualTo("a"));
             Assert.That(anonymousFn.Parameters[1].As<IdentifierNode>().Name, Is.EqualTo("b"));
         }
+
+        [Test]
+        public void ShouldParseSingleArgumentsNoParenthesisSingleExpressionAnonymousFunction()
+        {
+            var code = "let x = n => n * n;";
+            var ast = RunTest<VariableDeclarationNode>(code, nameof(VariableDeclarationNode));
+            var binaryExp = ast.Declarations[0].As<BinaryExpressionNode>();
+            var anonymousFn = binaryExp.Right.As<AnonymousFunctionDeclaration>();
+
+            Assert.That(anonymousFn.Parameters.Count, Is.EqualTo(1));
+            Assert.That(anonymousFn.Parameters[0].As<IdentifierNode>().Name, Is.EqualTo("n"));
+        }
     }
 
     private static AstNode RunTest(string code, string expectedNodeType)

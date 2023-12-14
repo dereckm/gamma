@@ -60,8 +60,11 @@ public class Parser
         }
         if (token.Type == TokenType.Identifier) 
         {
-            var identifier = MaybeMember(ParseIdentifier());
-            return MaybeIndexer(MaybeCall(identifier));
+            var expression = MaybeMember(ParseIdentifier());
+            expression = MaybeCall(expression);
+            expression = MaybeIndexer(expression);
+            expression = MaybeAnonymousFunctionDeclaration([expression]);
+            return expression;
         }
          if (token.Is(TokenType.Operator) 
             && token.Value is "++" or "--")
@@ -210,7 +213,7 @@ public class Parser
             return MaybeBinary(functionCall, 0);
         }
 
-        return MaybeBinary(MaybeAssignment(node), 0);
+        return MaybeAssignment(node);
     }
 
     public AstNode ParseForLoop()
