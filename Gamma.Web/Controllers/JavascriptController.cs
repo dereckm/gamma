@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Text.Json.Serialization;
 using Gamma.Interpreting.Javascript;
 using Gamma.Parsing.Javascript;
 using Gamma.Parsing.Javascript.Syntax;
@@ -23,11 +24,16 @@ public class JavascriptController : ControllerBase
     {
         try 
         {
+            var sw = Stopwatch.StartNew();
             var parser = new Parser();
             var ast = parser.Parse(payload.Code);
             var printer = new AstPrinter();
             var result = printer.Print(ast);
-            return Ok(result);
+            sw.Stop();
+            return Ok(new ParserResponse {
+                Result = result,
+                ExecutionTimeMs = sw.ElapsedMilliseconds
+            });
         } 
         catch (Exception ex)
         {
@@ -41,17 +47,30 @@ public class JavascriptController : ControllerBase
     {
         try 
         {
+            var sw = Stopwatch.StartNew();
             var parser = new Parser();
             var ast = parser.Parse(payload.Code);
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
-            return Ok(result);
+            sw.Stop();
+            return Ok(new ParserResponse {
+                Result = result.ToString() ?? "###ERROR###",
+                ExecutionTimeMs = sw.ElapsedMilliseconds
+            });
         } 
         catch (Exception ex)
         {
             _logger.LogError("Cannot parse code: {ex}", ex);
              return UnprocessableEntity(ex.Message);
         }
+    }
+
+    public class ParserResponse
+    {
+        [JsonPropertyName("result")]
+        public string Result { get; set; } = "###ERROR###";
+        [JsonPropertyName("executionTimeMs")]
+        public long ExecutionTimeMs { get; set; }
     }
 
     public class ParserPayload

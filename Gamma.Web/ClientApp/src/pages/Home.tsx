@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import './Home.css'
 import Notification, { useNotification } from '../components/Notification'
 
+interface ParserResponse {
+  result: string;
+  executionTimeMs: number;
+}
 
 const Home = () => {
   const [code, setCode] = useState('');
@@ -23,12 +27,10 @@ const Home = () => {
           })
           return;
         }
-        response.text().then(result => {
-          setAst(result)
+        response.json().then((parserResponse: ParserResponse) => {
+          setAst(parserResponse.result)
+          notify(`Sucessfully parsed code in ${parserResponse.executionTimeMs}ms!`, 'success')
         })
-       
-        notify('Sucessfully parsed code!', 'success')
-        console.log(response)
       })
       .catch(console.error)
   }
@@ -48,8 +50,9 @@ const Home = () => {
           })
           return;
         }
-        response.json().then(result => {
-          notify(`> ${result}`, 'success')
+        response.json().then((parserResponse: ParserResponse) => {
+          notify(`> ${parserResponse.result} (${parserResponse.executionTimeMs}ms)`, 'success')
+
         })
       })
       .catch(error => {

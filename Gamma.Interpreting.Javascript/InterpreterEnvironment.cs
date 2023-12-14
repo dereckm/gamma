@@ -61,6 +61,11 @@ internal class InterpreterEnvironment
         _variables[name] = new Variable { Value = value, Type = type };
     }
 
+    public void Redef(string name, object value, string type)
+    {
+        _variables[name] = new Variable { Value = value, Type = type };
+    }
+
     private class Variable 
     {
         public object Value { get; set; } = new object();

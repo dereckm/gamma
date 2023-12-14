@@ -13,6 +13,8 @@ public class Token
     public static Token OpenBrace => new("{", TokenType.Punctuation);
     public static Token CloseBrace => new("}", TokenType.Punctuation);
 
+    public static Token Keyword(string symbol) => new(symbol, TokenType.Keyword);
+
     public string Value { get; }
     public TokenType Type { get; }
 

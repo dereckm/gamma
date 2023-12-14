@@ -163,6 +163,17 @@ public class ForStatementNode(
     public AstNode Body { get; } = body;
 }
 
+public class ForOfStatement(
+    VariableDeclarationNode left,
+    AstNode right,
+    AstNode body
+) : AstNode("for_of_statement")
+{
+    public VariableDeclarationNode Left { get; } = left;
+    public AstNode Right { get; } = right;
+    public AstNode Body { get; } = body;
+}
+
 public class UnaryExpressionNode(
     string type,
     AstNode operand,

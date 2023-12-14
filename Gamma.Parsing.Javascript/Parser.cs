@@ -222,13 +222,28 @@ public class Parser
         var test = AstNode.Dead;
         var update = AstNode.Dead;
 
-        _tokens.Consume(new Token("for", TokenType.Keyword));
+        _tokens.Consume(Token.Keyword("for"));
         _tokens.Consume(Token.OpenParenthesis);
-
+        
         var next = _tokens.Peek();
+
         if (!next.Is(TokenType.Punctuation, ";")) {
             init = ParseExpression();
         }
+
+        var ofKeyword = Token.Keyword("of");
+        if (_tokens.Peek().Is(ofKeyword)) 
+        {
+            var declaration = init.As<VariableDeclarationNode>();
+            _tokens.Consume(ofKeyword);
+            var iteratable = ParseExpression();
+            _tokens.Consume(Token.CloseParenthesis);
+            var forOfBody = ParseExpression();
+
+            return new ForOfStatement(declaration, iteratable, forOfBody);
+        }
+        
+
         _tokens.Consume(new Token(";", TokenType.Punctuation));
 
         next = _tokens.Peek();
@@ -369,16 +384,10 @@ public class Parser
     {
         var keyword = _tokens.Next();
         var type = keyword.Value;
-        var left = ParseIdentifier();
+        var identifier = ParseIdentifier();
 
-        if (_tokens.Peek().Is(TokenType.Operator, "=")) 
-        {
-            var right = MaybeAssignment(left);
-
-            return new VariableDeclarationNode("variable_declaration", type, new [] { right });
-        }
-
-        return left;
+        var right = MaybeAssignment(identifier);
+        return new VariableDeclarationNode("variable_declaration", type, new [] { right });
     }
 
     public IdentifierNode ParseIdentifier() 

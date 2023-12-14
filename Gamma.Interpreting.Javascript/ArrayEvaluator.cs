@@ -135,6 +135,9 @@ internal partial class Evaluator
                 case "length":
                     _evaluator._stack.Push(_list.Count);
                     break;
+                case "@@iterator":
+                    _evaluator._stack.Push(_list.GetEnumerator());
+                    break;
                 default:
                     throw new NotImplementedException($"Member doesn't exist on array ([]), Member={identifier.Name}");
             }

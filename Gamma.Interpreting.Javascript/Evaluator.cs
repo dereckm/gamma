@@ -1,5 +1,5 @@
+using System.Collections;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Gamma.Parsing.Javascript.Syntax;
 
 namespace Gamma.Interpreting.Javascript;
@@ -162,6 +162,7 @@ internal partial class Evaluator : AstVisitor
             var incrementedValue = ApplyOperator("+", left, right);
             var identifier = node.Left.As<IdentifierNode>();
             _env!.Set(identifier.Name, incrementedValue);
+            _stack.Push(incrementedValue);
             return;
         }
 
@@ -220,6 +221,11 @@ internal partial class Evaluator : AstVisitor
             var evaluator = new ArrayEvaluator(list, node, this);
             evaluator.Evaluate();
         }
+        else if (@object is string str)
+        {
+            var evaluator = new StringEvaluator(str, node, this);
+            evaluator.Evaluate();
+        }
     }
 
     public override void Visit(IndexerCallNode node)
@@ -247,6 +253,31 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
+    public override void Visit(ForOfStatement node)
+    {
+        var declaration = node.Left.Declarations[0];
+        var identifier = declaration.As<IdentifierNode>();
+        var iteratorVarName = $"@@iterator_{Guid.NewGuid()}";
+        Visit(node.Right);
+        var iteratorValue = _stack.Pop();
+        _env!.Def(iteratorVarName, iteratorValue, "const");
+        var iteratorMember = new MemberExpression(new IdentifierNode(iteratorVarName), new IdentifierNode("@@iterator"));
+        Visit(iteratorMember);
+        var enumerator = (IEnumerator)_stack.Pop();
+        
+        var parentEnv = _env;
+        _env.Extend();
+        object result = new Undefined();
+        while (enumerator.MoveNext())
+        {
+            _env.Redef(identifier.Name, enumerator.Current, node.Left.Kind);
+            Visit(node.Body);
+            result = _stack.Pop();
+        }
+        _env = parentEnv;
+        _stack.Push(result);
+    }
+
     public override void Visit(AnonymousFunctionDeclaration node)
     {
         _stack.Push(node);
@@ -262,6 +293,10 @@ internal partial class Evaluator : AstVisitor
             return ApplyOperator(op, double2, int4);
         if (a is double double3 && b is double double4)
             return ApplyOperator(op, double3, double4);
+        if (a is string s1 && b is char c1)
+            return s1 + c1;
+        if (a is string s2 && b is string s3)
+            return s2 + s3;
         throw new NotImplementedException($"Type combinaison not supported: ({a.GetType().Name}, {b.GetType().Name})");
     }
 

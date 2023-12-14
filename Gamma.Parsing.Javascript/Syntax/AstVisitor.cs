@@ -58,6 +58,9 @@ namespace Gamma.Parsing.Javascript.Syntax;
                 case AnonymousFunctionDeclaration anonymousFunction:
                     Visit(anonymousFunction);
                     break;
+                case ForOfStatement forOfStatement:
+                    Visit(forOfStatement);
+                    break;
             }
         }
 
@@ -169,6 +172,13 @@ namespace Gamma.Parsing.Javascript.Syntax;
             {
                 Visit(parameter);
             }
+            Visit(node.Body);
+        }
+
+        public virtual void Visit(ForOfStatement node)
+        {
+            Visit(node.Left);
+            Visit(node.Right);
             Visit(node.Body);
         }
     }

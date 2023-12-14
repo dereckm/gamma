@@ -204,19 +204,31 @@ public class ParserTests
         [Test]
         public void Parse_ForLoopWithoutInitializer_ReturnsProgramtNode()
         {
-            RunTest("let i = 0; for (; i < 3; i++) { console.log(i); }", "ProgramNode");
+            RunTest("let i = 0; for (; i < 3; i++) { console.log(i); }", nameof(ProgramNode));
         }
 
         [Test]
         public void Parse_ForLoopWithoutCondition_ReturnsProgramNode()
         {
-            RunTest("let i = 0; for (; ; i++) { console.log(i); }", "ProgramNode");
+            RunTest("let i = 0; for (; ; i++) { console.log(i); }", nameof(ProgramNode));
         }
 
         [Test]
         public void Parse_ForLoopWithoutIncrementor_ReturnsProgramNode()
         {
-            RunTest("let i = 0; for (i; i < 3;) { console.log(i); }", "ProgramNode");
+            RunTest("let i = 0; for (i; i < 3;) { console.log(i); }", nameof(ProgramNode));
+        }
+
+        [Test]
+        public void ParseForOfLoop()
+        {
+            var code = """
+                let x = [1, 2, 3];
+                for(const a of x) {
+                }
+            """;
+
+            var program = RunTest<ProgramNode>(code, nameof(ProgramNode));
         }
     }
 
@@ -232,7 +244,7 @@ public class ParserTests
             // Additional assertions based on your AST structure
             Assert.That("simpleFunction", Is.EqualTo(((NamedFunctionDeclarationNode)ast).Identifier.Name));
             Assert.That(0, Is.EqualTo(((NamedFunctionDeclarationNode)ast).Parameters.Count));
-            Assert.That("identifier", Is.EqualTo(ast.As<NamedFunctionDeclarationNode>().Body.Type));
+            Assert.That(ast.As<NamedFunctionDeclarationNode>().Body.Type, Is.EqualTo("variable_declaration"));
         }
 
         [Test]
@@ -246,7 +258,7 @@ public class ParserTests
             Assert.That(2, Is.EqualTo(((NamedFunctionDeclarationNode)ast).Parameters.Count));
             Assert.That("param1", Is.EqualTo(((IdentifierNode)((NamedFunctionDeclarationNode)ast).Parameters[0]).Name));
             Assert.That("param2", Is.EqualTo(((IdentifierNode)((NamedFunctionDeclarationNode)ast).Parameters[1]).Name));
-            Assert.That("identifier", Is.EqualTo(ast.As<NamedFunctionDeclarationNode>().Body.Type));
+            Assert.That(ast.As<NamedFunctionDeclarationNode>().Body.Type, Is.EqualTo("variable_declaration"));
         }
     }
 

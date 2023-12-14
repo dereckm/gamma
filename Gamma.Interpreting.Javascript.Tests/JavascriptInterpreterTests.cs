@@ -239,6 +239,55 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 var result = interpreter.Evaluate(ast);
                 Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 2, 3 }));
             }
+
+            [Test]
+            public void TestEvaluateArrayIterator()
+            {
+                var code = """
+                    let arr = [1, 2, 3];
+                    let sum = 0;
+                    for(const n of arr) {
+                        sum += n;
+                    }
+                    sum;
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.EqualTo(6));
+            }
+        }
+
+        public class Strings 
+        {
+            [Test]
+            public void TestEvaluateStringLength()
+            {
+                var code = """
+                    let str = 'hello world';
+                    str.length;
+                """;    
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.EqualTo(11));
+            }
+
+            [Test]
+            public void TestEvaluateStringSplit()
+            {
+                var code = """
+                    let str = 'hello world';
+                    let x = str.split(' ');
+                """;
+                var ast = RunTest(code, "ProgramNode");
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.EquivalentTo(new List<object> { "hello", "world" }));
+            }
         }
 
         [Test]

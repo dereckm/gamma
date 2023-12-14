@@ -167,4 +167,17 @@ public class AstPrinter : AstVisitor
         _print("member:");
         Indented(() => base.Visit(node));
     }
+
+    public override void Visit(ForOfStatement node)
+    {
+        _print("for_of_statement:");
+        Indented(() => {
+            _print("left:");
+            Indented(() => Visit(node.Left));
+            _print("right:");
+            Indented(() => Visit(node.Right));
+            _print("body:");
+            Indented(() => Visit(node.Body));
+        });
+    }
 }
