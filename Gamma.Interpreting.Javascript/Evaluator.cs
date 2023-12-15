@@ -10,6 +10,7 @@ internal partial class Evaluator : AstVisitor
     private object _result;
     private Stack<object> _stack = new();
     private HashSet<InterpreterEnvironment> _returnTracker = new();
+    private HashSet<InterpreterEnvironment> _breakTracker = new();
 
     public Evaluator(InterpreterEnvironment env)
     {
@@ -25,7 +26,7 @@ internal partial class Evaluator : AstVisitor
         return _result;
     }
 
-    public override void Visit(ProgramNode node)
+    public override void VisitProgram(Program node)
     {
         _result = false;
         foreach(var exp in node.Body)
@@ -35,7 +36,7 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
-    public override void Visit(BlockStatementNode node)
+    public override void VisitBlockStatement(BlockStatement node)
     {
         _returnTracker = new();
         foreach(var expression in node.Body)
@@ -46,18 +47,18 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
-    public override void Visit(LiteralNode node)
+    public override void VisitLiteral(Literal node)
     {
         _stack.Push(node.Value);
     }
 
-    public override void Visit(IdentifierNode node)
+    public override void VisitIdentifier(Identifier node)
     {
         var value = _env!.Get(node.Name);
         _stack.Push(value);
     }
 
-    public override void Visit(FunctionCallNode node)
+    public override void VisitFunctionCall(FunctionCall node)
     {
         var env = _env;
         _env = _env!.Extend();
@@ -70,26 +71,26 @@ internal partial class Evaluator : AstVisitor
             var argument = node.Arguments[i];
             Evaluate(argument);
             var argumentValue = _stack.Pop();
-            var paramIdentifier = function.Parameters[i].As<IdentifierNode>();
+            var paramIdentifier = function.Parameters[i].As<Identifier>();
             _env.Def(paramIdentifier.Name, argumentValue, "let");
         }
         Visit(function.Body);
         _env = env;
     }
 
-    public override void Visit(FunctionReturn node)
+    public override void VisitFunctionReturn(FunctionReturn node)
     {
         _returnTracker.Add(_env!);
         Visit(node.Expression);
     }
 
-    public override void Visit(NamedFunctionDeclarationNode node)
+    public override void VisitNamedFunctionDeclaration(NamedFunctionDeclaration node)
     {
         _env!.Def(node.Identifier.Name, node, "const");
         _stack.Push(node);
     }
 
-    public override void Visit(IfStatementNode node)
+    public override void VisitIfStatement(IfStatement node)
     {
         Visit(node.Test);
         var test = (bool)_stack.Pop();
@@ -103,20 +104,20 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
-    public override void Visit(VariableDeclarationNode node)
+    public override void VistiVariableDeclaration(VariableDeclaration node)
     {
         foreach(var declaration in node.Declarations)
         {
-            if (declaration is BinaryExpressionNode binary)
+            if (declaration is BinaryExpression binary)
             {
                 Visit(binary.Right);
                 var result = _stack.Peek();
                 switch (binary.Left)
                 {
-                    case IdentifierNode identifierNode:
+                    case Identifier identifierNode:
                         _env!.Def(identifierNode.Name, result, node.Kind);
                         break;
-                    case IndexerCallNode indexerCallNode:
+                    case IndexerCall indexerCallNode:
                         var identifier = indexerCallNode.Identifier.Name;
                         var obj = (JavascriptArray)_env!.Get(identifier);
                         Visit(indexerCallNode.Argument);
@@ -130,7 +131,7 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
-    public override void Visit(BinaryExpressionNode node)
+    public override void VisitBinaryExpression(BinaryExpression node)
     {
         if (node.Type == "assignment")
         {
@@ -138,10 +139,10 @@ internal partial class Evaluator : AstVisitor
             var result = _stack.Peek();
             switch (node.Left)
             {
-                case IdentifierNode identifierNode:
+                case Identifier identifierNode:
                     _env!.Set(identifierNode.Name, result);
                     return;
-                case IndexerCallNode indexerCallNode:
+                case IndexerCall indexerCallNode:
                     var identifier = indexerCallNode.Identifier.Name;
                     var obj = (JavascriptArray)_env!.Get(identifier);
                     Visit(indexerCallNode.Argument);
@@ -160,7 +161,7 @@ internal partial class Evaluator : AstVisitor
         if (node.Operator == "+=") 
         {
             var incrementedValue = ApplyOperator("+", left, right);
-            var identifier = node.Left.As<IdentifierNode>();
+            var identifier = node.Left.As<Identifier>();
             _env!.Set(identifier.Name, incrementedValue);
             _stack.Push(incrementedValue);
             return;
@@ -170,10 +171,10 @@ internal partial class Evaluator : AstVisitor
         _stack.Push(newValue);
     }
 
-    public override void Visit(UnaryExpressionNode node)
+    public override void VisitUnaryExpression(UnaryExpression node)
     {
-        var identifier = node.Operand.As<IdentifierNode>().Name;
-        object value = _env!.Get(node.Operand.As<IdentifierNode>().Name);
+        var identifier = node.Operand.As<Identifier>().Name;
+        object value = _env!.Get(node.Operand.As<Identifier>().Name);
         switch(node.Operator) 
         {
             case "++":
@@ -189,7 +190,7 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
-    public override void Visit(ArrayNode node)
+    public override void VisitArray(ArrayNode node)
     {
         var values = new JavascriptArray();
         foreach(var item in node.Items)
@@ -210,14 +211,14 @@ internal partial class Evaluator : AstVisitor
         throw new NotImplementedException($"Type of indexer is not supported! Type={indexObject.GetType().Name}");
     }
 
-    public override void Visit(MemberExpression node)
+    public override void VisitMemberExpression(MemberExpression node)
     {
         object @object = new Undefined();
-        if (node.Object is IdentifierNode identifierNode) 
+        if (node.Object is Identifier identifierNode) 
         {
             @object = _env!.Get(identifierNode.Name);
         }
-        else if (node.Object is LiteralNode literalNode)
+        else if (node.Object is Literal literalNode)
         {
             @object = literalNode.Value;
         }
@@ -234,7 +235,7 @@ internal partial class Evaluator : AstVisitor
         }
     }
 
-    public override void Visit(IndexerCallNode node)
+    public override void VisitIndexerCall(IndexerCall node)
     {
         var identifier = node.Identifier.Name;
         var array = (JavascriptArray)_env!.Get(identifier);
@@ -244,30 +245,36 @@ internal partial class Evaluator : AstVisitor
         _stack.Push(array[index]);
     }   
 
-    public override void Visit(ForStatementNode node)
+    public override void VisitForStatement(ForStatement node)
     {
         Visit(node.Init);
         Visit(node.Test);
         var shouldContinue = (bool)_stack.Pop();
+        var parentEnv = _env;
+        _env.Extend();
         while (shouldContinue)
         {
             Visit(node.Body);
             Visit(node.Update);
+            if (_breakTracker.Contains(_env))
+                break;
             var _ = _stack.Pop(); // consume the update
             Visit(node.Test);
             shouldContinue = (bool)_stack.Pop();
         }
+        _breakTracker.Remove(_env);
+        _env = parentEnv;
     }
 
-    public override void Visit(ForOfStatement node)
+    public override void VisitForOfStatement(ForOfStatement node)
     {
         var declaration = node.Left.Declarations[0];
-        var identifier = declaration.As<IdentifierNode>();
+        var identifier = declaration.As<Identifier>();
         var iteratorVarName = $"@@iterator_{Guid.NewGuid()}";
         Visit(node.Right);
         var iteratorValue = _stack.Pop();
         _env!.Def(iteratorVarName, iteratorValue, "const");
-        var iteratorMember = new MemberExpression(new IdentifierNode(iteratorVarName), new IdentifierNode("@@iterator"));
+        var iteratorMember = new MemberExpression(new Identifier(iteratorVarName), new Identifier("@@iterator"));
         Visit(iteratorMember);
         var enumerator = (IEnumerator)_stack.Pop();
         
@@ -278,15 +285,28 @@ internal partial class Evaluator : AstVisitor
         {
             _env.Redef(identifier.Name, enumerator.Current, node.Left.Kind);
             Visit(node.Body);
+            if (_breakTracker.Contains(_env))
+                break;
             result = _stack.Pop();
         }
+        _breakTracker.Remove(_env);
         _env = parentEnv;
         _stack.Push(result);
     }
 
-    public override void Visit(AnonymousFunctionDeclaration node)
+    public override void VisitAnonymousFunctionDeclaration(AnonymousFunctionDeclaration node)
     {
         _stack.Push(node);
+    }
+
+    public override void VisitBreakStatement(BreakStatement node)
+    {
+        _breakTracker.Add(_env!);
+    }
+
+    protected override bool ShouldVisit(AstNode node)
+    {
+        return _breakTracker.Count == 0;
     }
 
     private object ApplyOperator(string op, object a, object b)
@@ -299,10 +319,14 @@ internal partial class Evaluator : AstVisitor
             return ApplyOperator(op, double2, int4);
         if (a is double double3 && b is double double4)
             return ApplyOperator(op, double3, double4);
-        if (a is string s1 && b is char c1)
+        if (a is string s1 && b is char c1 && op == "+")
             return s1 + c1;
-        if (a is string s2 && b is string s3)
+        if (a is string s2 && b is string s3 && op == "+")
             return s2 + s3;
+        if (a is char c2 && b is string s4 && (op == "===" || op == "=="))
+            return c2.ToString() == s4;
+        if (a is string s5 && b is char s6 && (op == "===" || op == "=="))
+            return s5 == s6.ToString();
         throw new NotImplementedException($"Type combinaison not supported: ({a.GetType().Name}, {b.GetType().Name})");
     }
 

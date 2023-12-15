@@ -26,9 +26,9 @@ public class DeadNode(string type) : AstNode(type)
 }
 
 // Program-related nodes
-public class ProgramNode : AstNode
+public class Program : AstNode
 {
-    public ProgramNode(string type, IEnumerable<AstNode> statements) : base(type) 
+    public Program(string type, IEnumerable<AstNode> statements) : base(type) 
     {
         Body.AddRange(statements);
     }
@@ -46,9 +46,9 @@ public class ArrayNode : AstNode
     public List<AstNode> Items { get; } = [];
 }
 
-public class BlockStatementNode : AstNode
+public class BlockStatement : AstNode
 {
-    public BlockStatementNode(string type, IEnumerable<AstNode> nodes) : base(type) 
+    public BlockStatement(string type, IEnumerable<AstNode> nodes) : base(type) 
     {
         Body.AddRange(nodes);
     }
@@ -57,9 +57,9 @@ public class BlockStatementNode : AstNode
 }
 
 // Declaration nodes
-public class VariableDeclarationNode : AstNode
+public class VariableDeclaration : AstNode
 {
-    public VariableDeclarationNode(string type, string kind, IEnumerable<AstNode> declarations) : base(type) 
+    public VariableDeclaration(string type, string kind, IEnumerable<AstNode> declarations) : base(type) 
     {
         Kind = kind;
         Declarations.AddRange(declarations);
@@ -90,28 +90,28 @@ public abstract class FunctionDeclaration : AstNode
     public AstNode Body { get; }
 }
 
-public class NamedFunctionDeclarationNode(
+public class NamedFunctionDeclaration(
     string type,
-    IdentifierNode identifier,
+    Identifier identifier,
     IEnumerable<AstNode> parameters,
     AstNode body
         ) : FunctionDeclaration(type, parameters, body)
 {
-    public IdentifierNode Identifier { get; } = identifier;
+    public Identifier Identifier { get; } = identifier;
 }
 
 // Expression nodes
-public class IdentifierNode(string name) : AstNode("identifier")
+public class Identifier(string name) : AstNode("identifier")
 {
     public string Name { get; } = name;
 }
 
-public class LiteralNode(string type, object value) : AstNode(type)
+public class Literal(string type, object value) : AstNode(type)
 {
     public object Value { get; set; } = value;
 }
 
-public class BinaryExpressionNode(string type, AstNode left, string @operator, AstNode right) : AstNode(type)
+public class BinaryExpression(string type, AstNode left, string @operator, AstNode right) : AstNode(type)
 {
     public string Operator { get; } = @operator;
     public AstNode Left { get; } = left;
@@ -119,38 +119,38 @@ public class BinaryExpressionNode(string type, AstNode left, string @operator, A
 }
 
 // Control Flow nodes
-public class IfStatementNode(string type, AstNode test, AstNode consequent) : AstNode(type)
+public class IfStatement(string type, AstNode test, AstNode consequent) : AstNode(type)
 {
     public AstNode Test { get; } = test;
     public AstNode Consequent { get; } = consequent;
     public AstNode Alternate { get; set; } = Dead;
 }
 
-public class FunctionCallNode : AstNode
+public class FunctionCall : AstNode
 {
-    public FunctionCallNode(
+    public FunctionCall(
         string type,
-        IdentifierNode identifierNode,
+        Identifier identifierNode,
         IEnumerable<AstNode> arguments) : base(type)
     {
         Identifier = identifierNode;
         Arguments.AddRange(arguments);
     }
 
-    public IdentifierNode Identifier { get; }
+    public Identifier Identifier { get; }
 
     public List<AstNode> Arguments { get; } = [];
 }
 
-public class IndexerCallNode(IdentifierNode identifierNode, AstNode argument) : AstNode("indexer_call")
+public class IndexerCall(Identifier identifierNode, AstNode argument) : AstNode("indexer_call")
 {
-    public IdentifierNode Identifier { get; } = identifierNode;
+    public Identifier Identifier { get; } = identifierNode;
 
     public AstNode Argument { get; } = argument;
 }
 
 // Loop and Iteration nodes
-public class ForStatementNode(
+public class ForStatement(
     string type,
     AstNode init,
     AstNode test,
@@ -164,17 +164,17 @@ public class ForStatementNode(
 }
 
 public class ForOfStatement(
-    VariableDeclarationNode left,
+    VariableDeclaration left,
     AstNode right,
     AstNode body
 ) : AstNode("for_of_statement")
 {
-    public VariableDeclarationNode Left { get; } = left;
+    public VariableDeclaration Left { get; } = left;
     public AstNode Right { get; } = right;
     public AstNode Body { get; } = body;
 }
 
-public class UnaryExpressionNode(
+public class UnaryExpression(
     string type,
     AstNode operand,
     string @operator) : AstNode(type)
@@ -183,6 +183,8 @@ public class UnaryExpressionNode(
     public string Operator { get; } = @operator;
     public bool IsSuffix { get; } = false;
 }
+
+public class BreakStatement() : AstNode("break_statement") { }
 
 // // Exception Handling nodes
 // public class TryStatementNode : AstNode

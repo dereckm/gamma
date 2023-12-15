@@ -25,7 +25,7 @@ public class Parser
             return statements[0];
         }
 
-        return new ProgramNode("program", statements);
+        return new Program("program", statements);
     }
 
     public AstNode ParseAtom()
@@ -49,6 +49,10 @@ public class Parser
                 return ParseFunctionDeclaration();
             if (token.Value == "return") 
                 return ParseFunctionReturn();
+            if (token.Value == "break") {
+                _tokens.Consume(token);
+                return new BreakStatement();
+            }
         }
         if (token.Type == TokenType.Number)
         {
@@ -76,19 +80,19 @@ public class Parser
             var operatorToken = _tokens.Next();
             var type = operatorToken.Value == "++" ? "inc" : "dec";
             var operand = ParseAtom();
-            return new UnaryExpressionNode(type, operand, operatorToken.Value);
+            return new UnaryExpression(type, operand, operatorToken.Value);
         }
         if (token.Is(TokenType.Operator) && token.Value is "-")
         {
             var operatorToken = _tokens.Next();
             var operand = ParseAtom();
-            return new UnaryExpressionNode("minus", operand, operatorToken.Value);
+            return new UnaryExpression("minus", operand, operatorToken.Value);
         }
         if (token.Is(TokenType.Operator) && token.Value is "!")
         {
             var operatorToken = _tokens.Next();
             var operand = ParseAtom();
-            return new UnaryExpressionNode("not", operand, operatorToken.Value);
+            return new UnaryExpression("not", operand, operatorToken.Value);
         }
 
         throw new NotImplementedException();
@@ -180,7 +184,7 @@ public class Parser
         var parameters = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
         var body = ParseExpression();
 
-        return new NamedFunctionDeclarationNode(
+        return new NamedFunctionDeclaration(
             "function_declaration",
             identifier,
             parameters,
@@ -190,12 +194,12 @@ public class Parser
     public AstNode MaybeIndexer(AstNode node)
     {
         var next = _tokens.Peek();
-        if (next.Is(TokenType.Punctuation, "[") && node is IdentifierNode identifier)
+        if (next.Is(TokenType.Punctuation, "[") && node is Identifier identifier)
         {
             _tokens.Consume(next);
             var argument = ParseExpression();
             _tokens.Consume(new Token("]", TokenType.Punctuation));
-            var indexerCall = new IndexerCallNode(identifier, argument);
+            var indexerCall = new IndexerCall(identifier, argument);
             return MaybeBinary(MaybeAssignment(indexerCall), 0);
         }
 
@@ -206,10 +210,10 @@ public class Parser
     {
         var next = _tokens.Peek();
         
-        if (next.Is(Token.OpenParenthesis) && node is IdentifierNode identifier)
+        if (next.Is(Token.OpenParenthesis) && node is Identifier identifier)
         {
             var arguments = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
-            var functionCall = new FunctionCallNode(
+            var functionCall = new FunctionCall(
                 "function_call",
                 identifier,
                 arguments
@@ -238,7 +242,7 @@ public class Parser
         var ofKeyword = Token.Keyword("of");
         if (_tokens.Peek().Is(ofKeyword)) 
         {
-            var declaration = init.As<VariableDeclarationNode>();
+            var declaration = init.As<VariableDeclaration>();
             _tokens.Consume(ofKeyword);
             var iteratable = ParseExpression();
             _tokens.Consume(Token.CloseParenthesis);
@@ -265,7 +269,7 @@ public class Parser
         var body = ParseExpression();
 
 
-        return new ForStatementNode(
+        return new ForStatement(
             "for",
             init,
             test,
@@ -284,19 +288,19 @@ public class Parser
     public AstNode ParseBool()
     {
         var token = _tokens.Next();
-        return new LiteralNode("bool", bool.Parse(token.Value));
+        return new Literal("bool", bool.Parse(token.Value));
     }
 
     public AstNode ParseNumber()
     {
         var numberToken = _tokens.Next();
-        return new LiteralNode ("number", int.Parse(numberToken.Value));
+        return new Literal ("number", int.Parse(numberToken.Value));
     }
 
     public AstNode ParseString()
     {
         var token = _tokens.Next();
-        return new LiteralNode("string", token.Value);
+        return new Literal("string", token.Value);
     }
 
     public AstNode ParseStatementBlock()
@@ -304,7 +308,7 @@ public class Parser
         var statements = Delimited(Token.OpenBrace, Token.CloseBrace);
         return statements.Count == 1 
             ? statements[0] 
-            : new BlockStatementNode("block", statements);
+            : new BlockStatement("block", statements);
     }
 
 
@@ -323,7 +327,7 @@ public class Parser
             alternate = ParseExpression();
         }
         
-        return new IfStatementNode("if", test, consequent)
+        return new IfStatement("if", test, consequent)
         {
             Alternate = alternate
         };
@@ -338,7 +342,7 @@ public class Parser
         {
             var operatorToken = _tokens.Next();
             var type = operatorToken.Value == "++" ? "inc" : "dec";
-            return new UnaryExpressionNode(
+            return new UnaryExpression(
                 type,
                 left,
                 operatorToken.Value
@@ -352,7 +356,7 @@ public class Parser
             {
                 var operatorToken = _tokens.Next();
                 var right = MaybeBinary(ParseAtom(), otherPrecendence);
-                var binary = new BinaryExpressionNode(
+                var binary = new BinaryExpression(
                         "binary",
                         left,
                         operatorToken.Value,
@@ -373,7 +377,7 @@ public class Parser
             _tokens.Consume(token);
             var right = ParseExpression();
 
-            return new BinaryExpressionNode(
+            return new BinaryExpression(
                 "assignment",
                 left,
                 "=",
@@ -391,13 +395,13 @@ public class Parser
         var identifier = ParseIdentifier();
 
         var right = MaybeAssignment(identifier);
-        return new VariableDeclarationNode("variable_declaration", type, new [] { right });
+        return new VariableDeclaration("variable_declaration", type, new [] { right });
     }
 
-    public IdentifierNode ParseIdentifier() 
+    public Identifier ParseIdentifier() 
     {
         var identifierToken = _tokens.Next();
         if (identifierToken.Type != TokenType.Identifier) throw _tokens.Throw("Expected identifier token.");
-        return new IdentifierNode(identifierToken.Value);
+        return new Identifier(identifierToken.Value);
     }
 }

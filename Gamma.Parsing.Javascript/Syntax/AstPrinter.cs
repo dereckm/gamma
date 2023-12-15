@@ -16,15 +16,15 @@ public class AstPrinter : AstVisitor
         return _sb.ToString();
     }
 
-    public override void Visit(IfStatementNode node)
+    public override void VisitIfStatement(IfStatement node)
     {
         _print("if:");
         _indentLevel++;
-        base.Visit(node);
+        base.VisitIfStatement(node);
         _indentLevel--;
     }
 
-    public override void Visit(BinaryExpressionNode node)
+    public override void VisitBinaryExpression(BinaryExpression node)
     {
         _print("binary:");
         _indentLevel++;
@@ -42,7 +42,7 @@ public class AstPrinter : AstVisitor
 
     }
 
-    public override void Visit(UnaryExpressionNode node)
+    public override void VisitUnaryExpression(UnaryExpression node)
     {
         _print("unary:");
         _indentLevel++;
@@ -52,13 +52,13 @@ public class AstPrinter : AstVisitor
         _indentLevel--;
     }
 
-    public override void Visit(IdentifierNode node)
+    public override void VisitIdentifier(Identifier node)
     {
         _print("identifier:");
         Indented(() => _print($"name: {node.Name}"));
     }
 
-    public override void Visit(LiteralNode node)
+    public override void VisitLiteral(Literal node)
     {
         _print("literal:");
         _indentLevel++;
@@ -67,7 +67,7 @@ public class AstPrinter : AstVisitor
         _indentLevel--;
     }
 
-    public override void Visit(VariableDeclarationNode node)
+    public override void VistiVariableDeclaration(VariableDeclaration node)
     {
         _print("variable_decl:");
         _indentLevel++;
@@ -79,7 +79,7 @@ public class AstPrinter : AstVisitor
         _indentLevel--;
     }
 
-    public override void Visit(ArrayNode node)
+    public override void VisitArray(ArrayNode node)
     {
         _print("array:");
         _print("[");
@@ -92,20 +92,20 @@ public class AstPrinter : AstVisitor
         _print("]");
     }
 
-    public override void Visit(IndexerCallNode node)
+    public override void VisitIndexerCall(IndexerCall node)
     {
         _print("indexer_call:");
         Indented(() => {
-            Visit(node.Identifier);
+            VisitIdentifier(node.Identifier);
             Visit(node.Argument);
         });
     }
 
-    public override void Visit(FunctionCallNode node)
+    public override void VisitFunctionCall(FunctionCall node)
     {
         _print("fn_call:");
         _indentLevel++;
-        Visit(node.Identifier);
+        VisitIdentifier(node.Identifier);
         _print("arguments:");
         _indentLevel++;
         foreach(var argument in node.Arguments)
@@ -123,7 +123,7 @@ public class AstPrinter : AstVisitor
         _indentLevel--;
     }
 
-    public override void Visit(AnonymousFunctionDeclaration node)
+    public override void VisitAnonymousFunctionDeclaration(AnonymousFunctionDeclaration node)
     {
         _print("anonymous_fn_declaration:");
         Indented(() => {
@@ -139,17 +139,17 @@ public class AstPrinter : AstVisitor
         });
     }
 
-    public override void Visit(FunctionReturn node)
+    public override void VisitFunctionReturn(FunctionReturn node)
     {
         _print("return_statement:");
         Indented(() => Visit(node.Expression));
     }
 
-    public override void Visit(NamedFunctionDeclarationNode node)
+    public override void VisitNamedFunctionDeclaration(NamedFunctionDeclaration node)
     {
         _print("fn_declaration:");
         Indented(() => {
-            Visit(node.Identifier);
+            VisitIdentifier(node.Identifier);
             _print("parameters:");
             Indented(() => {
                 foreach(var parameter in node.Parameters)
@@ -162,18 +162,18 @@ public class AstPrinter : AstVisitor
         });
     }
 
-    public override void Visit(MemberExpression node)
+    public override void VisitMemberExpression(MemberExpression node)
     {
         _print("member:");
-        Indented(() => base.Visit(node));
+        Indented(() => base.VisitMemberExpression(node));
     }
 
-    public override void Visit(ForOfStatement node)
+    public override void VisitForOfStatement(ForOfStatement node)
     {
         _print("for_of_statement:");
         Indented(() => {
             _print("left:");
-            Indented(() => Visit(node.Left));
+            Indented(() => VistiVariableDeclaration(node.Left));
             _print("right:");
             Indented(() => Visit(node.Right));
             _print("body:");

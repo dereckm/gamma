@@ -21,10 +21,10 @@ internal partial class Evaluator
         {
             switch(_node.Property)
                 {
-                    case IdentifierNode identifier:
+                    case Identifier identifier:
                         EvaluateAccessor(identifier);
                         break;
-                    case FunctionCallNode:
+                    case FunctionCall:
                         EvaluateMethodCall();
                         break;
                 }
@@ -32,7 +32,7 @@ internal partial class Evaluator
 
         private void EvaluateMethodCall()
         {
-            var identifier = _node.Property.As<FunctionCallNode>().Identifier.Name;
+            var identifier = _node.Property.As<FunctionCall>().Identifier.Name;
             switch(identifier)
             {
                 case "split":
@@ -45,7 +45,7 @@ internal partial class Evaluator
 
         private void EvaluateSplit()
         {
-            var fnCall = _node.Property.As<FunctionCallNode>();
+            var fnCall = _node.Property.As<FunctionCall>();
             var arg = fnCall.Arguments[0];
             _evaluator.Visit(arg);
             var separator = (string)_evaluator._stack.Pop();
@@ -53,7 +53,7 @@ internal partial class Evaluator
             _evaluator._stack.Push(results);
         }
 
-        private void EvaluateAccessor(IdentifierNode identifier)
+        private void EvaluateAccessor(Identifier identifier)
         {
             switch(identifier.Name)
             {

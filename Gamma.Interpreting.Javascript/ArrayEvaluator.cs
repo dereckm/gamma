@@ -21,10 +21,10 @@ internal partial class Evaluator
         {
             switch(_node.Property)
             {
-                case IdentifierNode identifier:
+                case Identifier identifier:
                     EvaluateAccessor(identifier);
                     break;
-                case FunctionCallNode:
+                case FunctionCall:
                     EvaluateMethodCall();
                     break;
             }
@@ -32,7 +32,7 @@ internal partial class Evaluator
 
         private void EvaluateMethodCall()
         {
-            var identifier = _node.Property.As<FunctionCallNode>().Identifier.Name;
+            var identifier = _node.Property.As<FunctionCall>().Identifier.Name;
             switch (identifier)
             {
                 case "push":
@@ -73,7 +73,7 @@ internal partial class Evaluator
 
         private void EvaluatePush()
         {
-            var fnCall = _node.Property.As<FunctionCallNode>();
+            var fnCall = _node.Property.As<FunctionCall>();
             var arg = fnCall.Arguments[0];
             _evaluator.Visit(arg);
             var item = _evaluator._stack.Pop();
@@ -90,15 +90,15 @@ internal partial class Evaluator
 
         private void EvaluateSome()
         {
-            var fnCall = _node.Property.As<FunctionCallNode>();
+            var fnCall = _node.Property.As<FunctionCall>();
             var predicate = fnCall.Arguments[0];
             var tempVar = Guid.NewGuid().ToString();
             _evaluator._env!.Def(tempVar, predicate, "const");
             foreach(var item in _list)
             {
-                var arg = new LiteralNode("object", item);
-                var predicateCall = new FunctionCallNode("anonymous_fn_call", new IdentifierNode(tempVar), new [] { arg });
-                _evaluator.Visit(predicateCall);
+                var arg = new Literal("object", item);
+                var predicateCall = new FunctionCall("anonymous_fn_call", new Identifier(tempVar), new [] { arg });
+                _evaluator.VisitFunctionCall(predicateCall);
                 var result = (bool)_evaluator._stack.Pop();
                 if (result) 
                 {
@@ -111,7 +111,7 @@ internal partial class Evaluator
 
         private void EvaluateMap()
         {
-            var fnCall = _node.Property.As<FunctionCallNode>();
+            var fnCall = _node.Property.As<FunctionCall>();
             var callback = fnCall.Arguments[0];
             var tempVar = Guid.NewGuid().ToString();
             _evaluator._env!.Def(tempVar, callback, "const");
@@ -119,16 +119,16 @@ internal partial class Evaluator
             for(var i = 0; i < _list.Count; i++)
             {
                 var item = _list[i];
-                var arg = new LiteralNode("object", item);
-                var predicateCall = new FunctionCallNode("anonymous_fn_call", new IdentifierNode(tempVar), new [] { arg });
-                _evaluator.Visit(predicateCall);
+                var arg = new Literal("object", item);
+                var predicateCall = new FunctionCall("anonymous_fn_call", new Identifier(tempVar), new [] { arg });
+                _evaluator.VisitFunctionCall(predicateCall);
                 var mappedValue = _evaluator._stack.Pop();
                 mappedValues.Add(mappedValue);
             }
             _evaluator._stack.Push(mappedValues);
         }
 
-        private void EvaluateAccessor(IdentifierNode identifier)
+        private void EvaluateAccessor(Identifier identifier)
         {
             switch (identifier.Name)
             {

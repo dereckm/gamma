@@ -10,7 +10,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
         public void TestEvaluateSimpleExpression()
         {
             var code = "1 + 2;";
-            var ast = RunTest(code, "BinaryExpressionNode");
+            var ast = RunTest(code, nameof(BinaryExpression));
 
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
@@ -22,7 +22,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
         public void TestEvaluateVariableDeclaration()
         {
             var code = "let x = 5;";
-            var ast = RunTest(code, "VariableDeclarationNode");
+            var ast = RunTest(code, nameof(VariableDeclaration));
 
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
@@ -34,7 +34,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
         public void TestEvaluateFunctionCall()
         {
             var code = "function add(a, b) { return a + b; } add(3, 4);";
-            var ast = RunTest(code, "ProgramNode");
+            var ast = RunTest(code, nameof(Program));
 
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
@@ -55,36 +55,61 @@ namespace Gamma.Interpreting.Javascript.Tests;
             add(3, 4);
             x;
             """;
-            var ast = RunTest(code, "ProgramNode");
+            var ast = RunTest(code, nameof(Program));
 
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
 
-            Assert.That(0, Is.EqualTo(result));
+            Assert.That(result, Is.EqualTo(0));
         }
 
-        [Test]
-        public void TestEvaluateForLoop()
-        {
-            var code = "let sum = 0; for (let i = 1; i <= 5; i++) { sum += i; } sum;";
-            var ast = RunTest(code, "ProgramNode");
-
-            var interpreter = new JavascriptInterpreter();
-            var result = interpreter.Evaluate(ast);
-
-            Assert.That(15, Is.EqualTo(result));
-        }
+        
 
         [Test]
         public void TestEvaluateIfElseStatement()
         {
             var code = "let x = 10; let result = 'a'; if (x > 5) { result = 'greater'; } else { result = 'less or equal'; } result;";
-            var ast = RunTest(code, "ProgramNode");
+            var ast = RunTest(code, nameof(Program));
 
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
 
             Assert.That("greater",  Is.EqualTo(result));
+        }
+
+        public class Loops 
+        {
+            [Test]
+            public void TestEvaluateForLoop()
+            {
+                var code = "let sum = 0; for (let i = 1; i <= 5; i++) { sum += i; } sum;";
+                var ast = RunTest(code, nameof(Program));
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+
+                Assert.That(15, Is.EqualTo(result));
+            }
+
+            [Test]
+            public void TestEvaluateBreak()
+            {
+                var code = """
+                    let x = [];
+                    for(let i = 1; i < 10; i++) {
+                        if (i === 5) 
+                            break;
+                        x.push(i);
+                    }
+                    x;
+                """;
+                var ast = RunTest(code, nameof(Program));
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+
+                Assert.That((List<object>)result, Is.EquivalentTo(new object[] { 1, 2, 3, 4 }));
+            }
         }
 
         [TestFixture]
@@ -94,7 +119,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
             public void TestEvaluateArrayDeclaration()
             {
                 var code = "let myArray = [1, 2, 3]; myArray;";
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -106,7 +131,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
             public void TestEvaluateArrayAccess()
             {
                 var code = "let myArray = [1, 2, 3]; myArray[1];";
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -118,7 +143,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
             public void TestEvaluateArrayModification()
             {
                 var code = "let myArray = [1, 2, 3]; myArray[1] = 10; myArray;";
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -130,7 +155,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
             public void TestEvaluateArrayLength()
             {
                 var code = "let myArray = [1, 2, 3]; myArray.length;";
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -146,7 +171,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     arr.push(4);
                     arr;
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -161,7 +186,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     arr.pop();
                     arr;
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -175,7 +200,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     let arr = [1, 2, 3];
                     arr.some((n) => n % 2 === 0);
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -189,7 +214,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     let arr = [1, 3, 5];
                     arr.some((n) => n % 2 === 0);
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -203,7 +228,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     let arr = [1, 2, 3];
                     arr.map((n) => n * 2);
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -218,7 +243,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     arr.reverse();
                     arr;
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -233,7 +258,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     arr.shift();
                     arr;
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -251,7 +276,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     }
                     sum;
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -268,7 +293,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     let str = 'hello world';
                     str.length;
                 """;    
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -282,7 +307,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     let str = 'hello world';
                     let x = str.split(' ');
                 """;
-                var ast = RunTest(code, "ProgramNode");
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
@@ -300,6 +325,22 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
                 Assert.That(result, Is.EqualTo(3));
+            }
+        }
+
+        public class Number 
+        {
+            [Test]
+            public void TestEvaluateNumberParseInt()
+            {
+                var code = """
+                    let number = parseInt('123');
+                """;
+                var ast = RunTest(code, nameof(VariableDeclaration));
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.EqualTo(123));
             }
         }
 
@@ -322,7 +363,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                     }
                     sumArray(myArray);
                     """;
-            var ast = RunTest(code, "ProgramNode");
+            var ast = RunTest(code, nameof(Program));
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
             Assert.That(110, Is.EqualTo(result));
@@ -335,7 +376,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 const x = 5;
                 x = 3;
             """;
-            var ast = RunTest(code, "ProgramNode");
+            var ast = RunTest(code, nameof(Program));
             var interpreter = new JavascriptInterpreter();
             var exception = Assert.Throws<Exception>(() => interpreter.Evaluate(ast));
            Assert.That(exception!.Message, Is.EqualTo("Illegal assignment on const variable: \"x\""));
@@ -348,7 +389,7 @@ namespace Gamma.Interpreting.Javascript.Tests;
                 function a() { return 1; }
                 function a() { return 3; }
             """;
-            var ast = RunTest(code, "ProgramNode");
+            var ast = RunTest(code, nameof(Program));
             var interpreter = new JavascriptInterpreter();
             var exception = Assert.Throws<Exception>(() => interpreter.Evaluate(ast));
            Assert.That(exception!.Message, Is.EqualTo("Already defined in scope: \"a\""));

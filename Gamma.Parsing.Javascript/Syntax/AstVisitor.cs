@@ -5,66 +5,79 @@ namespace Gamma.Parsing.Javascript.Syntax;
 
     public class AstVisitor
     {
+        protected virtual bool ShouldVisit(AstNode node) 
+        {
+             return true; 
+        }
+
         public virtual void Visit(AstNode node)
         {
+            if (!ShouldVisit(node)) 
+            {
+                return;
+            }
+
             // Default implementation does nothing
             switch (node)
             {
-                case ProgramNode programNode:
-                    Visit(programNode);
+                case Program programNode:
+                    VisitProgram(programNode);
                     break;
-                case BlockStatementNode blockStatementNode:
-                    Visit(blockStatementNode);
+                case BlockStatement blockStatementNode:
+                    VisitBlockStatement(blockStatementNode);
                     break;
-                case VariableDeclarationNode variableDeclarationNode:
-                    Visit(variableDeclarationNode);
+                case VariableDeclaration variableDeclarationNode:
+                    VistiVariableDeclaration(variableDeclarationNode);
                     break;
-                case NamedFunctionDeclarationNode functionDeclarationNode:
-                    Visit(functionDeclarationNode);
+                case NamedFunctionDeclaration functionDeclarationNode:
+                    VisitNamedFunctionDeclaration(functionDeclarationNode);
                     break;
-                case IdentifierNode identifierNode:
-                    Visit(identifierNode);
+                case Identifier identifierNode:
+                    VisitIdentifier(identifierNode);
                     break;
-                case LiteralNode literalNode:
-                    Visit(literalNode);
+                case Literal literalNode:
+                    VisitLiteral(literalNode);
                     break;
-                case BinaryExpressionNode binaryExpressionNode:
-                    Visit(binaryExpressionNode);
+                case BinaryExpression binaryExpressionNode:
+                    VisitBinaryExpression(binaryExpressionNode);
                     break;
-                case IfStatementNode ifStatementNode:
-                    Visit(ifStatementNode);
+                case IfStatement ifStatementNode:
+                    VisitIfStatement(ifStatementNode);
                     break;
-                case FunctionCallNode functionCallNode:
-                    Visit(functionCallNode);
+                case FunctionCall functionCallNode:
+                    VisitFunctionCall(functionCallNode);
                     break;
-                case ForStatementNode forStatementNode:
-                    Visit(forStatementNode);
+                case ForStatement forStatementNode:
+                    VisitForStatement(forStatementNode);
                     break;
-                case UnaryExpressionNode unaryExpressionNode:
-                    Visit(unaryExpressionNode);
+                case UnaryExpression unaryExpressionNode:
+                    VisitUnaryExpression(unaryExpressionNode);
                     break;
                 case FunctionReturn functionReturn:
-                    Visit(functionReturn);
+                    VisitFunctionReturn(functionReturn);
                     break;
                 case ArrayNode array:
-                    Visit(array);
+                    VisitArray(array);
                     break;
-                case IndexerCallNode indexerCallNode:
-                    Visit(indexerCallNode);
+                case IndexerCall indexerCallNode:
+                    VisitIndexerCall(indexerCallNode);
                     break;
                 case MemberExpression memberExpression:
-                    Visit(memberExpression);
+                    VisitMemberExpression(memberExpression);
                     break;
                 case AnonymousFunctionDeclaration anonymousFunction:
-                    Visit(anonymousFunction);
+                    VisitAnonymousFunctionDeclaration(anonymousFunction);
                     break;
                 case ForOfStatement forOfStatement:
-                    Visit(forOfStatement);
+                    VisitForOfStatement(forOfStatement);
+                    break;
+                case BreakStatement breakStatement:
+                    VisitBreakStatement(breakStatement);
                     break;
             }
         }
 
-        public virtual void Visit(ProgramNode node)
+        public virtual void VisitProgram(Program node)
         {
             foreach (var statement in node.Body)
             {
@@ -72,7 +85,7 @@ namespace Gamma.Parsing.Javascript.Syntax;
             }
         }
 
-        public virtual void Visit(BlockStatementNode node)
+        public virtual void VisitBlockStatement(BlockStatement node)
         {
             foreach (var statement in node.Body)
             {
@@ -80,7 +93,7 @@ namespace Gamma.Parsing.Javascript.Syntax;
             }
         }
 
-        public virtual void Visit(VariableDeclarationNode node)
+        public virtual void VistiVariableDeclaration(VariableDeclaration node)
         {
             foreach (var declaration in node.Declarations)
             {
@@ -88,7 +101,7 @@ namespace Gamma.Parsing.Javascript.Syntax;
             }
         }
 
-        public virtual void Visit(NamedFunctionDeclarationNode node)
+        public virtual void VisitNamedFunctionDeclaration(NamedFunctionDeclaration node)
         {
             foreach (var param in node.Parameters)
             {
@@ -97,39 +110,39 @@ namespace Gamma.Parsing.Javascript.Syntax;
             Visit(node.Body);
         }
 
-        public virtual void Visit(IdentifierNode node)
+        public virtual void VisitIdentifier(Identifier node)
         {
             
         }
 
-        public virtual void Visit(LiteralNode node)
+        public virtual void VisitLiteral(Literal node)
         {
             
         }
 
-        public virtual void Visit(BinaryExpressionNode node)
+        public virtual void VisitBinaryExpression(BinaryExpression node)
         {
             Visit(node.Left);
             Visit(node.Right);
         }
 
-        public virtual void Visit(IfStatementNode node)
+        public virtual void VisitIfStatement(IfStatement node)
         {
             Visit(node.Test);
             Visit(node.Consequent);
             Visit(node.Alternate);
         }
 
-        public virtual void Visit(FunctionCallNode node)
+        public virtual void VisitFunctionCall(FunctionCall node)
         {
-            Visit(node.Identifier);
+            VisitIdentifier(node.Identifier);
             foreach (var argument in node.Arguments)
             {
                 Visit(argument);
             }
         }
 
-        public virtual void Visit(ForStatementNode node)
+        public virtual void VisitForStatement(ForStatement node)
         {
             Visit(node.Init);
             Visit(node.Test);
@@ -137,17 +150,17 @@ namespace Gamma.Parsing.Javascript.Syntax;
             Visit(node.Body);
         }
 
-        public virtual void Visit(UnaryExpressionNode node)
+        public virtual void VisitUnaryExpression(UnaryExpression node)
         {
             Visit(node.Operand);
         }
 
-        public virtual void Visit(FunctionReturn node)
+        public virtual void VisitFunctionReturn(FunctionReturn node)
         {
             Visit(node.Expression);
         }
 
-        public virtual void Visit(ArrayNode node)
+        public virtual void VisitArray(ArrayNode node)
         {
             foreach(var item in node.Items)
             {
@@ -155,18 +168,18 @@ namespace Gamma.Parsing.Javascript.Syntax;
             }
         }
 
-        public virtual void Visit(IndexerCallNode node)
+        public virtual void VisitIndexerCall(IndexerCall node)
         {
             Visit(node.Argument);
         }
 
-        public virtual void Visit(MemberExpression node)
+        public virtual void VisitMemberExpression(MemberExpression node)
         {
             Visit(node.Object);
             Visit(node.Property);
         }
 
-        public virtual void Visit(AnonymousFunctionDeclaration node)
+        public virtual void VisitAnonymousFunctionDeclaration(AnonymousFunctionDeclaration node)
         {
             foreach(var parameter in node.Parameters)
             {
@@ -175,10 +188,15 @@ namespace Gamma.Parsing.Javascript.Syntax;
             Visit(node.Body);
         }
 
-        public virtual void Visit(ForOfStatement node)
+        public virtual void VisitForOfStatement(ForOfStatement node)
         {
-            Visit(node.Left);
+            VistiVariableDeclaration(node.Left);
             Visit(node.Right);
             Visit(node.Body);
+        }
+
+        public virtual void VisitBreakStatement(BreakStatement node)
+        {
+            
         }
     }

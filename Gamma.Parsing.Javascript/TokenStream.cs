@@ -158,7 +158,7 @@ public class TokenStream
     private static readonly HashSet<string> Keywords = [ 
         "if", "else", "var", "const", "true", "false", 
         "let", "function", "for", "function", "return",
-        "of" ];
+        "of", "break" ];
     private static bool IsKeyword(string identifier) => Keywords.Contains(identifier);
    
     public Exception Throw(string message)
