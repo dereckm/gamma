@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Gamma.Parsing.Javascript.Syntax;
 
 // Base class for all AST nodes
@@ -100,7 +102,7 @@ public class NamedFunctionDeclaration(
     public Identifier Identifier { get; } = identifier;
 }
 
-// Expression nodes
+[DebuggerDisplay("Identifier={Name}")]
 public class Identifier(string name) : AstNode("identifier")
 {
     public string Name { get; } = name;

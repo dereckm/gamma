@@ -26,6 +26,14 @@ internal partial class Evaluator : AstVisitor
         return _result;
     }
 
+    public override void Visit(AstNode node)
+    {
+        if (node is Evaluation evaluation)
+            VisitEvaluation(evaluation);
+        else 
+            base.Visit(node);
+    }
+
     public override void VisitProgram(Program node)
     {
         _result = false;
@@ -185,6 +193,10 @@ internal partial class Evaluator : AstVisitor
                 _env.Set(identifier, (int)value - 1);
                 _stack.Push((int)value - 1);
                 break;
+            case "!":
+                _env.Set(identifier, !(bool)value);
+                _stack.Push(!(bool)value);
+                break;
             default: 
                 throw new NotImplementedException($"Unimplemented unary operator: {node.Operator}");
         }
@@ -309,8 +321,15 @@ internal partial class Evaluator : AstVisitor
         return _breakTracker.Count == 0;
     }
 
+    public void VisitEvaluation(Evaluation evaluation)
+    {
+        evaluation.Body(_stack, _env!);
+    }
+
     private object ApplyOperator(string op, object a, object b)
     {
+        if (op == "**" && a is int int5 && b is int int6)
+            return (int)Math.Pow(int5, int6);
         if (a is int int1 && b is int int2)
             return ApplyOperator(op, int1, int2);
         if (a is int int3 && b is double double1)
@@ -327,8 +346,11 @@ internal partial class Evaluator : AstVisitor
             return c2.ToString() == s4;
         if (a is string s5 && b is char s6 && (op == "===" || op == "=="))
             return s5 == s6.ToString();
+        
         throw new NotImplementedException($"Type combinaison not supported: ({a.GetType().Name}, {b.GetType().Name})");
     }
+
+
 
     private object ApplyOperator<T>(string op, T a, T b)
         where T: INumber<T>
@@ -349,4 +371,9 @@ internal partial class Evaluator : AstVisitor
             _ => throw new NotImplementedException(),
         };
     }
+}
+
+internal class Evaluation(Action<Stack<object>, InterpreterEnvironment> body) : AstNode("evaluation")
+{
+    public Action<Stack<object>, InterpreterEnvironment> Body { get; } = body;
 }

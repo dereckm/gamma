@@ -7,3 +7,10 @@ public class Undefined
         return "undefined";
     }
 }
+
+public class NaN {
+    public override string ToString()
+    {
+        return "NaN";
+    }
+}

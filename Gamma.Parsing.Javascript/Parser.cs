@@ -170,7 +170,7 @@ public class Parser
         if (next.Is(TokenType.Punctuation, ".")) 
         {
             _tokens.Consume(next);
-            var member = ParseExpression();
+            var member = ParseAtom();
             return new MemberExpression(node, member);
         }
 

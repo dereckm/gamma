@@ -335,12 +335,43 @@ namespace Gamma.Interpreting.Javascript.Tests;
             {
                 var code = """
                     let number = parseInt('123');
+                    number;
                 """;
-                var ast = RunTest(code, nameof(VariableDeclaration));
+                var ast = RunTest(code, nameof(Program));
 
                 var interpreter = new JavascriptInterpreter();
                 var result = interpreter.Evaluate(ast);
                 Assert.That(result, Is.EqualTo(123));
+            }
+
+            [Test]
+            public void TestEvaluateNumberParseIntNaN()
+            {
+                var code = """
+                    let number = parseInt('abc');
+                    number;
+                """;
+                var ast = RunTest(code, nameof(Program));
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.TypeOf<NaN>());
+            }
+
+            [Test]
+            public void TestEvaluateNumberIsNaN()
+            {
+                var code = """
+                    let notANumber = parseInt('a');
+                    let a = isNaN(notANumber);
+                    let b = isNaN(12);
+                    [a, b];
+                """;
+                var ast = RunTest(code, nameof(Program));
+
+                var interpreter = new JavascriptInterpreter();
+                var result = interpreter.Evaluate(ast);
+                Assert.That(result, Is.EquivalentTo(new List<object> { true, false }));
             }
         }
 
