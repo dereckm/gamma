@@ -38,9 +38,25 @@ internal partial class Evaluator
                 case "split":
                     EvaluateSplit();
                     break;
+                case "replaceAll":
+                    EvaluateReplaceAll();
+                    break;
                 default:
                     throw new NotImplementedException($"Method not found on type string: {identifier}");
             }
+        }
+
+        private void EvaluateReplaceAll()
+        {
+            var fnCall = _node.Property.As<FunctionCall>();
+            var arg = fnCall.Arguments[0];
+            _evaluator.Visit(arg);
+            var text = (string)_evaluator._stack.Pop();
+            var arg2 = fnCall.Arguments[1];
+            _evaluator.Visit(arg2);
+            var replacement = (string)_evaluator._stack.Pop();
+            var newString = _str.Replace(text, replacement);
+            _evaluator._stack.Push(newString);
         }
 
         private void EvaluateSplit()
