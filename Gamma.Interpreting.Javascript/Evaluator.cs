@@ -46,6 +46,8 @@ internal partial class Evaluator : AstVisitor
 
     public override void VisitBlockStatement(BlockStatement node)
     {
+        var env = _env;
+        _env = _env!.Extend();
         _returnTracker = new();
         object result = new Undefined();
         foreach(var expression in node.Body)
@@ -60,6 +62,7 @@ internal partial class Evaluator : AstVisitor
                 return;
             }
         }
+        _env = env;
         _stack.Push(result);
     }
 
@@ -332,7 +335,7 @@ internal partial class Evaluator : AstVisitor
         var enumerator = (IEnumerator)_stack.Pop();
         
         var parentEnv = _env;
-        _env.Extend();
+        _env = _env.Extend();
         object result = new Undefined();
         while (enumerator.MoveNext())
         {

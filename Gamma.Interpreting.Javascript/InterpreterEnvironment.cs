@@ -1,18 +1,13 @@
 namespace Gamma.Interpreting.Javascript;
 
-internal class InterpreterEnvironment
+public class InterpreterEnvironment
 {
     private Dictionary<string, Variable> _variables;
     private InterpreterEnvironment? _parent;
 
     public InterpreterEnvironment(InterpreterEnvironment? parent = null)
     {
-
-        _variables = new();
-        if (parent != null) 
-        {
-            _variables = new Dictionary<string, Variable>(parent._variables);
-        }
+        _variables = [];
         _parent = parent;
     }
 
@@ -35,8 +30,9 @@ internal class InterpreterEnvironment
 
     public object Get(string name)
     {
-        if (_variables.ContainsKey(name))
-            return _variables[name].Value;
+        var scope = Lookup(name);
+        if (scope != null && scope._variables.TryGetValue(name, out Variable? value))
+            return value.Value;
         throw new Exception($"Undefined variable {name}");
     }
 
