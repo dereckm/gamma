@@ -47,12 +47,20 @@ internal partial class Evaluator : AstVisitor
     public override void VisitBlockStatement(BlockStatement node)
     {
         _returnTracker = new();
+        object result = new Undefined();
         foreach(var expression in node.Body)
         {
             Visit(expression);
-            if (_returnTracker.Contains(_env!))
-             return;
+            if (_stack.Count > 0) {
+                result = _stack.Pop();
+            }
+            if (_returnTracker.Contains(_env!)) 
+            {
+                _stack.Push(result);
+                return;
+            }
         }
+        _stack.Push(result);
     }
 
     public override void VisitLiteral(Literal node)
@@ -82,7 +90,11 @@ internal partial class Evaluator : AstVisitor
             var paramIdentifier = function.Parameters[i].As<Identifier>();
             _env.Def(paramIdentifier.Name, argumentValue, "let");
         }
+        object result = new Undefined();
         Visit(function.Body);
+        if (_stack.Count > 0)
+            result = _stack.Pop();
+        _stack.Push(result);
         _env = env;
     }
 
@@ -136,6 +148,11 @@ internal partial class Evaluator : AstVisitor
                         
                 }
             }
+            else if (declaration is Identifier identifierNode)
+            {
+                _env!.Def(identifierNode.Name, new Undefined(), node.Kind);
+                _stack.Push(new Undefined());
+            }
         }
     }
 
@@ -179,26 +196,36 @@ internal partial class Evaluator : AstVisitor
         _stack.Push(newValue);
     }
 
+    public object GetNewValue(string @operator, object value) 
+    {
+        return @operator switch
+        {
+            "++" => (int)value + 1,
+            "--" => (int)value - 1,
+            "!" => !(bool)value,
+            _ => throw new NotImplementedException($"Unimplemented unary operator for type ({nameof(Identifier)})"),
+        };
+    }
+
     public override void VisitUnaryExpression(UnaryExpression node)
     {
-        var identifier = node.Operand.As<Identifier>().Name;
-        object value = _env!.Get(node.Operand.As<Identifier>().Name);
-        switch(node.Operator) 
+        if (node.Operand is Identifier identifier) 
         {
-            case "++":
-                _env.Set(identifier, (int)value + 1);
-                _stack.Push((int)value + 1);
-                break;
-            case "--":
-                _env.Set(identifier, (int)value - 1);
-                _stack.Push((int)value - 1);
-                break;
-            case "!":
-                _env.Set(identifier, !(bool)value);
-                _stack.Push(!(bool)value);
-                break;
-            default: 
-                throw new NotImplementedException($"Unimplemented unary operator: {node.Operator}");
+            object value = _env!.Get(node.Operand.As<Identifier>().Name);
+            var newValue = GetNewValue(node.Operator, value);
+            _env.Set(identifier.Name, newValue);
+            _stack.Push(newValue);
+        } 
+        else if (node.Operand is FunctionCall fnCall) 
+        {
+            Visit(fnCall);
+            var value = _stack.Pop();
+            var newValue = GetNewValue(node.Operator, value);
+            _stack.Push(newValue);
+        }
+        else 
+        {
+            throw new NotImplementedException($"Unimplemented unary operator type.");
         }
     }
 
@@ -245,6 +272,13 @@ internal partial class Evaluator : AstVisitor
             var evaluator = new StringEvaluator(str, node, this);
             evaluator.Evaluate();
         }
+        else if (node.Property is FunctionCall fnCall)
+        {
+            Visit(node.Object);
+            var value = _stack.Pop();
+            _env!.Redef("this", value, "const");
+            Visit(fnCall);
+        }
     }
 
     public override void VisitIndexerCall(IndexerCall node)
@@ -260,20 +294,27 @@ internal partial class Evaluator : AstVisitor
     public override void VisitForStatement(ForStatement node)
     {
         Visit(node.Init);
+        if (_stack.Count > 0) 
+            _ = _stack.Pop(); // consume init
         Visit(node.Test);
         var shouldContinue = (bool)_stack.Pop();
         var parentEnv = _env;
-        _env.Extend();
+        _env!.Extend();
+        object result = new Undefined();
         while (shouldContinue)
         {
             Visit(node.Body);
-            Visit(node.Update);
-            if (_breakTracker.Contains(_env))
+            if (_stack.Count > 0)
+                result = _stack.Pop();
+            Visit(node.Update); 
+            if (_stack.Count > 0) 
+                _ = _stack.Pop(); // consume the update
+            if (_breakTracker.Contains(_env)) 
                 break;
-            var _ = _stack.Pop(); // consume the update
             Visit(node.Test);
             shouldContinue = (bool)_stack.Pop();
         }
+        _stack.Push(result);
         _breakTracker.Remove(_env);
         _env = parentEnv;
     }

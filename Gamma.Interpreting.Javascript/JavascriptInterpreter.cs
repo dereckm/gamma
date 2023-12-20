@@ -26,6 +26,15 @@ public class JavascriptInterpreter
         NumberNaN();
         IsNaN();
         ParseInt();
+        ToJsString();
+    }
+
+    private void ToJsString()
+    {
+        CreateFunction("toString", (stack, env) => {
+            var obj = env.Get("this");
+            stack.Push(obj.ToString() ?? "");
+        }, ["this"]);
     }
 
     private void NumberNaN() 

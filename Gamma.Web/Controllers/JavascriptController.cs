@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Gamma.Interpreting.Javascript;
 using Gamma.Parsing.Javascript;
 using Gamma.Parsing.Javascript.Syntax;
@@ -20,13 +21,13 @@ public class JavascriptController : ControllerBase
     }
 
     [HttpPost("parse")]
-    public IActionResult Parse([FromBody] ParserPayload payload)
+    public IActionResult Parse([FromBody] string code)
     {
         try 
         {
             var sw = Stopwatch.StartNew();
             var parser = new Parser();
-            var ast = parser.Parse(payload.Code);
+            var ast = parser.Parse(Regex.Unescape(code));
             var printer = new AstPrinter();
             var result = printer.Print(ast);
             sw.Stop();
@@ -43,13 +44,13 @@ public class JavascriptController : ControllerBase
     }
 
     [HttpPost("interpret")]
-    public IActionResult Interpret([FromBody] ParserPayload payload)
+    public IActionResult Interpret([FromBody] string code)
     {
         try 
         {
             var sw = Stopwatch.StartNew();
             var parser = new Parser();
-            var ast = parser.Parse(payload.Code);
+            var ast = parser.Parse(Regex.Unescape(code));
             var interpreter = new JavascriptInterpreter();
             var result = interpreter.Evaluate(ast);
             sw.Stop();
@@ -73,8 +74,4 @@ public class JavascriptController : ControllerBase
         public long ExecutionTimeMs { get; set; }
     }
 
-    public class ParserPayload
-    {
-        public string Code { get; set;} = "";
-    }
 }

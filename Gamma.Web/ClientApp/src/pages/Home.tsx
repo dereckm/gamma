@@ -15,7 +15,7 @@ const Home = () => {
   const handleParseClick = () => {
     fetch('http://localhost:5000/javascript/parse', { 
       method: 'POST',
-      body: JSON.stringify({ code: code }),
+      body: JSON.stringify(code),
       headers: {
         "Content-Type": "application/json"
       }
@@ -38,7 +38,7 @@ const Home = () => {
   const handleRunClick = () => {
     fetch('http://localhost:5000/javascript/interpret', { 
       method: 'POST',
-      body: JSON.stringify({ code: code }),
+      body: JSON.stringify(code),
       headers: {
         "Content-Type": "application/json"
       }

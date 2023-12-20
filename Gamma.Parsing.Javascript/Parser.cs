@@ -167,7 +167,7 @@ public class Parser
     public AstNode MaybeMember(AstNode node) 
     {
         var next = _tokens.Peek();
-        if (next.Is(TokenType.Punctuation, ".")) 
+        if (next != null && next.Is(TokenType.Punctuation, ".")) 
         {
             _tokens.Consume(next);
             var member = ParseAtom();
@@ -194,7 +194,7 @@ public class Parser
     public AstNode MaybeIndexer(AstNode node)
     {
         var next = _tokens.Peek();
-        if (next.Is(TokenType.Punctuation, "[") && node is Identifier identifier)
+        if (next != null && next.Is(TokenType.Punctuation, "[") && node is Identifier identifier)
         {
             _tokens.Consume(next);
             var argument = ParseExpression();
@@ -210,7 +210,7 @@ public class Parser
     {
         var next = _tokens.Peek();
         
-        if (next.Is(Token.OpenParenthesis) && node is Identifier identifier)
+        if (next != null && next.Is(Token.OpenParenthesis) && node is Identifier identifier)
         {
             var arguments = Delimited(Token.OpenParenthesis, Token.CloseParenthesis);
             var functionCall = new FunctionCall(
@@ -218,7 +218,7 @@ public class Parser
                 identifier,
                 arguments
                 );
-            return MaybeBinary(functionCall, 0);
+            return functionCall;
         }
 
         return MaybeAssignment(node);
@@ -372,7 +372,7 @@ public class Parser
     public AstNode MaybeAssignment(AstNode left)
     {
         var token = _tokens.Peek();
-        if (token.Is(TokenType.Operator, "=")) 
+        if (token != null && token.Is(TokenType.Operator, "=")) 
         {
             _tokens.Consume(token);
             var right = ParseExpression();
